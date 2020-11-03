@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30611.23
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{D2440AAA-2EF7-4B06-9B91-76C87FFBD0F1}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Eruru.Json For Shared Project", "Eruru.Json For Shared Project\Eruru.Json For Shared Project.shproj", "{0D2015D5-1A78-4E35-BBA3-5095D07FDE1C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eruru.Json For .NET Framework 2.0", "Eruru.Json For .NET Framework 2.0\Eruru.Json For .NET Framework 2.0.csproj", "{B0B9C829-C15A-4B29-850A-FE155C8F65AC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestProject1", "UnitTestProject1\UnitTestProject1.csproj", "{58E29772-832B-446B-9CF5-C2DB05D9569F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eruru.Json For .NET Standard 2.0", "Eruru.Json For .NET Standard 2.0\Eruru.Json For .NET Standard 2.0.csproj", "{C07B24D6-EFCF-4743-AAB0-9D8F46FA89EF}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Eruru.Json For Shared Project\Eruru.Json For Shared Project.projitems*{0d2015d5-1a78-4e35-bba3-5095d07fde1c}*SharedItemsImports = 13
+		Eruru.Json For Shared Project\Eruru.Json For Shared Project.projitems*{b0b9c829-c15a-4b29-850a-fe155c8f65ac}*SharedItemsImports = 4
+		Eruru.Json For Shared Project\Eruru.Json For Shared Project.projitems*{c07b24d6-efcf-4743-aab0-9d8f46fa89ef}*SharedItemsImports = 5
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D2440AAA-2EF7-4B06-9B91-76C87FFBD0F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2440AAA-2EF7-4B06-9B91-76C87FFBD0F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2440AAA-2EF7-4B06-9B91-76C87FFBD0F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2440AAA-2EF7-4B06-9B91-76C87FFBD0F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0B9C829-C15A-4B29-850A-FE155C8F65AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0B9C829-C15A-4B29-850A-FE155C8F65AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0B9C829-C15A-4B29-850A-FE155C8F65AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0B9C829-C15A-4B29-850A-FE155C8F65AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58E29772-832B-446B-9CF5-C2DB05D9569F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58E29772-832B-446B-9CF5-C2DB05D9569F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58E29772-832B-446B-9CF5-C2DB05D9569F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58E29772-832B-446B-9CF5-C2DB05D9569F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C07B24D6-EFCF-4743-AAB0-9D8F46FA89EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C07B24D6-EFCF-4743-AAB0-9D8F46FA89EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C07B24D6-EFCF-4743-AAB0-9D8F46FA89EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C07B24D6-EFCF-4743-AAB0-9D8F46FA89EF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C8CA799B-4C63-4073-AF41-310B7B72DF5A}
+	EndGlobalSection
+EndGlobal

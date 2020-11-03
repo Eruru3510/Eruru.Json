@@ -1,0 +1,53 @@
+﻿using System;
+using System.Reflection;
+
+namespace Eruru.Json {
+
+	class JsonConverter {
+
+		readonly object Instance;
+		readonly Type Type;
+		readonly Type BeforeType;
+		readonly Type AfterType;
+		readonly MethodInfo ReadMethod;
+		readonly MethodInfo WriteMethod;
+		readonly object[] ReadParameters = new object[1];
+		readonly object[] WriteParameters = new object[1];
+
+		public JsonConverter (Type type) {
+			Type = type ?? throw new ArgumentNullException (nameof (type));
+			Type interfaceType = Type.GetInterface (typeof (IJsonConverter<object, object>).Name);
+			if (interfaceType is null) {
+				throw new JsonException ($"Need to inherit the {typeof (IJsonConverter<object, object>)} interface");
+			}
+			Type[] types = interfaceType.GetGenericArguments ();
+			BeforeType = types[0];
+			AfterType = types[1];
+			ReadMethod = interfaceType.GetMethod (nameof (IJsonConverter<object, object>.Read), new Type[] { BeforeType });
+			WriteMethod = interfaceType.GetMethod (nameof (IJsonConverter<object, object>.Write), new Type[] { AfterType });
+			Instance = JsonAPI.CreateInstance (Type);
+		}
+
+		public object Read (object value, JsonConfig config) {
+			if (config is null) {
+				throw new ArgumentNullException (nameof (config));
+			}
+			ReadParameters[0] = JsonAPI.ChangeType (value, BeforeType, config);
+			return JsonAPI.ChangeType (ReadMethod.Invoke (Instance, ReadParameters), ReadMethod.ReturnType, config);
+		}
+
+		public object Write (object value, JsonConfig config) {
+			if (config is null) {
+				throw new ArgumentNullException (nameof (config));
+			}
+			WriteParameters[0] = JsonAPI.ChangeType (value, AfterType, config);
+			return JsonAPI.ChangeType (WriteMethod.Invoke (Instance, WriteParameters), WriteMethod.ReturnType, config);
+		}
+
+		public override int GetHashCode () {
+			return Type.GetHashCode ();
+		}
+
+	}
+
+}

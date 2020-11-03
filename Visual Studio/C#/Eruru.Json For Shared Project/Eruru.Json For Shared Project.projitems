@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>0d2015d5-1a78-4e35-bba3-5095d07fde1c</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Eruru.Json</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)IJsonArray.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IJsonBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IJsonConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IJsonObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IJsonReader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IJsonTextualization.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonAPI.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonArray.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonArrayType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonDeserializer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonField.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonIgnoreField.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonIsNotSupportException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonKey.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Jsonkeyword.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonObjectType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonSerializer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonSerializerStack.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonTextBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonTextWriterStack.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonTextWriterStage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonTextWriter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonToken.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonTextReader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonTextReaderException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonTokenType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonValueBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonValueReader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonValueType.cs" />
+  </ItemGroup>
+</Project>

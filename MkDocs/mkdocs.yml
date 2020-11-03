@@ -1,0 +1,5 @@
+site_name: Eruru.Json
+nav:
+- 主页: index.md
+- 例程: samples.md
+theme: readthedocs
