@@ -2,12 +2,14 @@
 
 	public class JsonConfig {
 
-		public bool Compress = true;
-		public bool IgnoreCase = true;
-		public bool StringEnum = true;
-		public bool UTCTime = true;
-
 		public static JsonConfig Default { get; } = new JsonConfig ();
+
+		public bool Compress { get; set; } = true;
+		public bool IgnoreCase { get; set; } = true;
+		public bool IgnoreNull { get; set; } = false;
+		public bool StringEnum { get; set; } = true;
+		public bool UTCTime { get; set; } = true;
+		public string IndentString { get; set; } = "	";
 
 		public JsonConfig () {
 

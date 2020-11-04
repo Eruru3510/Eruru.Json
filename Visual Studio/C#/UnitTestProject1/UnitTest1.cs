@@ -30,6 +30,15 @@ namespace UnitTestProject1 {
 
 		}
 
+		public class Person {
+
+			public string Name { get; set; }
+			public int Age { get; set; }
+			public Person Partner { get; set; }
+			public decimal? Salary { get; set; }
+
+		}
+
 		[TestMethod]
 		public void SerializeAnObject () {
 			Account account = new Account {
@@ -58,8 +67,8 @@ namespace UnitTestProject1 {
 				$"\t\"Active\": true,{Environment.NewLine}" +
 				$"\t\"CreatedDate\": \"2013-01-20T00:00:00Z\",{Environment.NewLine}" +
 				$"\t\"Roles\": [{Environment.NewLine}" +
-				$"\t\t\"User\",{Environment.NewLine}" +
-				$"\t\t\"Admin\"{Environment.NewLine}" +
+					$"\t\t\"User\",{Environment.NewLine}" +
+					$"\t\t\"Admin\"{Environment.NewLine}" +
 				$"\t]{Environment.NewLine}" +
 			"}", json);
 		}
@@ -73,7 +82,7 @@ namespace UnitTestProject1 {
 			string path = @"d:\movie.json";
 			File.WriteAllText (path, JsonSerializer.Serialize (movie));
 			using (StreamWriter file = File.CreateText (path)) {
-				JsonSerializer.SerializeStreamWriter (file, movie);
+				JsonSerializer.Serialize (movie, file);
 			}
 			string json = File.ReadAllText (path);
 			Console.WriteLine (json);
@@ -116,7 +125,7 @@ namespace UnitTestProject1 {
 				]
 			}";
 			JsonObject jsonObject = JsonObject.Parse (json);
-			Console.WriteLine (jsonObject.ToString ());
+			Console.WriteLine (jsonObject.Serialize (false));
 			//{
 			//	"CPU": "Intel",
 			//	"Drives": [
@@ -124,7 +133,50 @@ namespace UnitTestProject1 {
 			//		"500 gigabyte hard drive"
 			//	]
 			//}
-			Assert.AreEqual ("{\"CPU\":\"Intel\",\"Drives\":[\"DVD read/writer\",\"500 gigabyte hard drive\"]}", jsonObject.ToString ());
+			Assert.AreEqual (
+			$"{{{Environment.NewLine}" +
+				$"\t\"CPU\": \"Intel\",{Environment.NewLine}" +
+				$"\t\"Drives\": [{Environment.NewLine}" +
+					$"\t\t\"DVD read/writer\",{Environment.NewLine}" +
+					$"\t\t\"500 gigabyte hard drive\"{Environment.NewLine}" +
+				$"\t]{Environment.NewLine}" +
+			"}", jsonObject.Serialize (false));
+		}
+
+		[TestMethod]
+		public void NullValueHandling () {
+			Person person = new Person {
+				Name = "Nigal Newborn",
+				Age = 1
+			};
+			string jsonIncludeNullValues = JsonSerializer.Serialize (person, false);
+			Console.WriteLine (jsonIncludeNullValues);
+			//{
+			//	"Name": "Nigal Newborn",
+			//	"Age": 1,
+			//	"Partner": null,
+			//	"Salary": null
+			//}
+			string jsonIgnoreNullValues = JsonSerializer.Serialize (person, false, new JsonConfig {
+				IgnoreNull = true
+			});
+			Console.WriteLine (jsonIgnoreNullValues);
+			//{
+			//	"Name": "Nigal Newborn",
+			//	"Age": 1
+			//}
+			Assert.AreEqual (
+			$"{{{Environment.NewLine}" +
+				$"\t\"Name\": \"Nigal Newborn\",{Environment.NewLine}" +
+				$"\t\"Age\": 1,{Environment.NewLine}" +
+				$"\t\"Partner\": null,{Environment.NewLine}" +
+				$"\t\"Salary\": null{Environment.NewLine}" +
+			"}", jsonIncludeNullValues);
+			Assert.AreEqual (
+			$"{{{Environment.NewLine}" +
+				$"\t\"Name\": \"Nigal Newborn\",{Environment.NewLine}" +
+				$"\t\"Age\": 1{Environment.NewLine}" +
+			"}", jsonIgnoreNullValues);
 		}
 
 	}

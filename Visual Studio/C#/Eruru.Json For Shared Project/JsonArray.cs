@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Eruru.Json {
 
-	public class JsonArray : List<JsonValue>, IJsonTextualization, IJsonArray {
+	public class JsonArray : List<JsonValue>, IJsonSerializable, IJsonArray {
 
 		public JsonArray () {
 
@@ -49,7 +49,7 @@ namespace Eruru.Json {
 		}
 
 		public override string ToString () {
-			return ToText ();
+			return Serialize ();
 		}
 
 		static JsonArray Build (TextReader textReader) {
@@ -61,30 +61,65 @@ namespace Eruru.Json {
 			}
 		}
 
-		#region IJsonTextualization
+		#region IJsonSerializable
 
-		public string ToText (JsonConfig config = null) {
-			return BuildText (new StringWriter (), config).ToString ();
+		public string Serialize (JsonConfig config = null) {
+			return Build (new StringWriter (), config).ToString ();
 		}
-
-		public void Save (Stream stream, JsonConfig config = null) {
-			if (stream is null) {
-				throw new ArgumentNullException (nameof (stream));
-			}
-			BuildText (new StreamWriter (stream), config);
-		}
-		public void Save (string path, JsonConfig config = null) {
+		public void Serialize (string path, JsonConfig config = null) {
 			if (path is null) {
 				throw new ArgumentNullException (nameof (path));
 			}
-			BuildText (new StreamWriter (path), config);
+			Build (new StreamWriter (path), config);
+		}
+		public void Serialize (Stream stream, JsonConfig config = null) {
+			if (stream is null) {
+				throw new ArgumentNullException (nameof (stream));
+			}
+			Build (new StreamWriter (stream), config);
+		}
+		public void Serialize (StreamWriter streamWriter, JsonConfig config = null) {
+			if (streamWriter is null) {
+				throw new ArgumentNullException (nameof (streamWriter));
+			}
+			Build (streamWriter, config);
+		}
+		public string Serialize (bool compress, JsonConfig config = null) {
+			return Build (new StringWriter (), compress, config).ToString ();
+		}
+		public void Serialize (string path, bool compress, JsonConfig config = null) {
+			if (path is null) {
+				throw new ArgumentNullException (nameof (path));
+			}
+			Build (new StreamWriter (path), compress, config);
+		}
+		public void Serialize (Stream stream, bool compress, JsonConfig config = null) {
+			if (stream is null) {
+				throw new ArgumentNullException (nameof (stream));
+			}
+			Build (new StreamWriter (stream), compress, config);
+		}
+		public void Serialize (StreamWriter streamWriter, bool compress, JsonConfig config = null) {
+			if (streamWriter is null) {
+				throw new ArgumentNullException (nameof (streamWriter));
+			}
+			Build (streamWriter, compress, config);
 		}
 
-		JsonTextBuilder BuildText (TextWriter textWriter, JsonConfig config) {
+		JsonTextBuilder Build (TextWriter textWriter, JsonConfig config) {
 			if (textWriter is null) {
 				throw new ArgumentNullException (nameof (textWriter));
 			}
 			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), textWriter, config)) {
+				builder.BuildArray ();
+				return builder;
+			}
+		}
+		JsonTextBuilder Build (TextWriter textWriter, bool compress, JsonConfig config) {
+			if (textWriter is null) {
+				throw new ArgumentNullException (nameof (textWriter));
+			}
+			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), textWriter, compress, config)) {
 				builder.BuildArray ();
 				return builder;
 			}

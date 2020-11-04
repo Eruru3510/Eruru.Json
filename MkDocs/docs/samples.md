@@ -52,7 +52,7 @@ string path = @"d:\movie.json";
 File.WriteAllText (path, JsonSerializer.Serialize (movie));
 //以流的方式序列化对象到Json文本文件
 using (StreamWriter file = File.CreateText (path)) {
-	JsonSerializer.SerializeStreamWriter (file, movie);
+	JsonSerializer.Serialize (movie, file);
 }
 ```
 ##反序列化Json字符串到对象
@@ -108,12 +108,45 @@ string json = @"{
 	]
 }";
 JsonObject jsonObject = JsonObject.Parse (json);
-Console.WriteLine (jsonObject.ToString ());
+Console.WriteLine (jsonObject.Serialize (false));
 //{
 //	"CPU": "Intel",
 //	"Drives": [
 //		"DVD read/writer",
 //		"500 gigabyte hard drive"
 //	]
+//}
+```
+##Null值处理
+```C#
+public class Person {
+
+	public string Name { get; set; }
+	public int Age { get; set; }
+	public Person Partner { get; set; }
+	public decimal? Salary { get; set; }
+
+}
+```
+```C#
+Person person = new Person {
+	Name = "Nigal Newborn",
+	Age = 1
+};
+string jsonIncludeNullValues = JsonSerializer.Serialize (person, false);
+Console.WriteLine (jsonIncludeNullValues);
+//{
+//	"Name": "Nigal Newborn",
+//	"Age": 1,
+//	"Partner": null,
+//	"Salary": null
+//}
+string jsonIgnoreNullValues = JsonSerializer.Serialize (person, false, new JsonConfig {
+	IgnoreNull = true
+});
+Console.WriteLine (jsonIgnoreNullValues);
+//{
+//	"Name": "Nigal Newborn",
+//	"Age": 1
 //}
 ```

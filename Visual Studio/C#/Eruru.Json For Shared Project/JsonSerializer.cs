@@ -21,81 +21,78 @@ namespace Eruru.Json {
 		public static string Serialize (object instance, JsonConfig config = null) {
 			return BuildText (instance, new StringWriter (), config).ToString ();
 		}
-		public static string Serialize (object instance, bool compress) {
-			return BuildText (instance, new StringWriter (), compress).ToString ();
-		}
-
-		public static void SerializeFile (string path, object instance, JsonConfig config = null) {
+		public static void Serialize (object instance, string path, JsonConfig config = null) {
 			if (path is null) {
 				throw new ArgumentNullException (nameof (path));
 			}
 			BuildText (instance, new StreamWriter (path), config);
 		}
-		public static void SerializeFile (string path, object instance, bool compress) {
-			if (path is null) {
-				throw new ArgumentNullException (nameof (path));
-			}
-			BuildText (instance, new StreamWriter (path), compress);
-		}
-
-		public static void SerializeStream (Stream stream, object instance, JsonConfig config = null) {
+		public static void Serialize (object instance, Stream stream, JsonConfig config = null) {
 			if (stream is null) {
 				throw new ArgumentNullException (nameof (stream));
 			}
 			BuildText (instance, new StreamWriter (stream), config);
 		}
-		public static void SerializeStream (Stream stream, object instance, bool compress) {
-			if (stream is null) {
-				throw new ArgumentNullException (nameof (stream));
-			}
-			BuildText (instance, new StreamWriter (stream), compress);
-		}
-
-		public static void SerializeStreamWriter (StreamWriter streamWriter, object instance, JsonConfig config = null) {
+		public static void Serialize (object instance, StreamWriter streamWriter, JsonConfig config = null) {
 			if (streamWriter is null) {
 				throw new ArgumentNullException (nameof (streamWriter));
 			}
 			BuildText (instance, streamWriter, config);
 		}
-		public static void SerializeStreamWriter (StreamWriter streamWriter, object instance, bool compress) {
+		public static string Serialize (object instance, bool compress, JsonConfig config = null) {
+			return BuildText (instance, new StringWriter (), compress, config).ToString ();
+		}
+		public static void Serialize (object instance, string path, bool compress, JsonConfig config = null) {
+			if (path is null) {
+				throw new ArgumentNullException (nameof (path));
+			}
+			BuildText (instance, new StreamWriter (path), compress, config);
+		}
+		public static void Serialize (object instance, Stream stream, bool compress, JsonConfig config = null) {
+			if (stream is null) {
+				throw new ArgumentNullException (nameof (stream));
+			}
+			BuildText (instance, new StreamWriter (stream), compress, config);
+		}
+		public static void Serialize (object instance, StreamWriter streamWriter, bool compress, JsonConfig config = null) {
 			if (streamWriter is null) {
 				throw new ArgumentNullException (nameof (streamWriter));
 			}
-			BuildText (instance, streamWriter, compress);
+			BuildText (instance, streamWriter, compress, config);
 		}
 
 		public static JsonValue SerializeValue (object instance, JsonConfig config = null) {
-			return Build (instance, config).BuildValue ();
+			return BuildValue (instance, config).BuildValue ();
 		}
 
 		public static JsonArray SerializeArray (object instance, JsonConfig config = null) {
-			return Build (instance, config).BuildArray ();
+			return BuildValue (instance, config).BuildArray ();
 		}
 
 		public static JsonObject SerializeObject (object instance, JsonConfig config = null) {
-			return Build (instance, config).BuildObject ();
+			return BuildValue (instance, config).BuildObject ();
 		}
 
 		static JsonTextBuilder BuildText (object instance, TextWriter textWriter, JsonConfig config) {
 			if (textWriter is null) {
 				throw new ArgumentNullException (nameof (textWriter));
 			}
-			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonSerializer (instance, config), textWriter, config)) {
+			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonSerializer (instance, config), textWriter)) {
 				builder.BuildValue ();
 				return builder;
 			}
 		}
-		static JsonTextBuilder BuildText (object instance, TextWriter textWriter, bool compress) {
+		static JsonTextBuilder BuildText (object instance, TextWriter textWriter, bool compress, JsonConfig config) {
 			if (textWriter is null) {
 				throw new ArgumentNullException (nameof (textWriter));
 			}
-			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonSerializer (instance), textWriter, compress)) {
+			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonSerializer (instance, config), textWriter, compress)) {
 				builder.BuildValue ();
 				return builder;
 			}
 		}
 
-		static JsonValueBuilder Build (object instance, JsonConfig config) {
+		static JsonValueBuilder BuildValue (object instance, JsonConfig config) {
 			return new JsonValueBuilder (new JsonSerializer (instance, config));
 		}
 
@@ -206,19 +203,27 @@ namespace Eruru.Json {
 			switch (Stacks.Peek ().ObjectType) {
 				case JsonObjectType.Class:
 					JsonAPI.ForEachMembers (Stacks.Peek ().Type, (memberInfo, fieldInfo, propertyInfo, field) => {
-						if (key (field?.Name ?? memberInfo.Name)) {
-							object instance;
+						bool isRead = false;
+						object instance = null;
+						object Read () {
+							if (isRead) {
+								return instance;
+							}
+							isRead = true;
 							switch (memberInfo.MemberType) {
 								case MemberTypes.Field:
-									instance = fieldInfo.GetValue (Stacks.Peek ().Instance);
-									break;
+									return instance = fieldInfo.GetValue (Stacks.Peek ().Instance);
 								case MemberTypes.Property:
-									instance = propertyInfo.GetValue (Stacks.Peek ().Instance, null);
-									break;
+									return instance = propertyInfo.GetValue (Stacks.Peek ().Instance, null);
 								default:
 									throw new JsonIsNotSupportException (memberInfo.MemberType);
 							}
-							Stacks.Push (new JsonSerializerStack (instance, field));
+						}
+						if (Config.IgnoreNull && Read () is null) {
+							return;
+						}
+						if (key (field?.Name ?? memberInfo.Name)) {
+							Stacks.Push (new JsonSerializerStack (Read (), field));
 							readValue ();
 							Stacks.Pop ();
 						}

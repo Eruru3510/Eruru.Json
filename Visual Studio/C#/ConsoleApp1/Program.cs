@@ -44,6 +44,7 @@ namespace ConsoleApp1 {
 			Console.WriteLine (JsonSerializer.Serialize (data));
 			data = JsonDeserializer.Deserialize (json, data);
 			Console.WriteLine (JsonSerializer.Serialize (data));
+			Console.WriteLine (JsonValue.Parse ("{'empty array':[],'array':[[[]],[{}]]}").Serialize (false));
 			Console.ReadLine ();
 		}
 

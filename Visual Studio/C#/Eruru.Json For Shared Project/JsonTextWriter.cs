@@ -8,6 +8,7 @@ namespace Eruru.Json {
 
 		readonly TextWriter TextWriter;
 		readonly JsonConfig Config;
+		readonly bool Compress;
 		readonly Stack<JsonTextWriterStack> Stacks = new Stack<JsonTextWriterStack> ();
 
 		int Indent;
@@ -15,11 +16,13 @@ namespace Eruru.Json {
 		public JsonTextWriter (TextWriter textWriter, JsonConfig config = null) {
 			TextWriter = textWriter ?? throw new ArgumentNullException (nameof (textWriter));
 			Config = config ?? JsonConfig.Default;
+			Compress = Config.Compress;
 			Stacks.Push (new JsonTextWriterStack (JsonTextWriterStage.Value));
 		}
-		public JsonTextWriter (TextWriter textWriter, bool compress) {
+		public JsonTextWriter (TextWriter textWriter, bool compress, JsonConfig config = null) {
 			TextWriter = textWriter ?? throw new ArgumentNullException (nameof (textWriter));
-			Config = new JsonConfig (compress);
+			Compress = compress;
+			Config = config ?? JsonConfig.Default;
 			Stacks.Push (new JsonTextWriterStack (JsonTextWriterStage.Value));
 		}
 
@@ -79,7 +82,7 @@ namespace Eruru.Json {
 				default:
 					throw new JsonIsNotSupportException (valueType);
 			}
-			Tail ();
+			NextStage ();
 		}
 
 		public override string ToString () {
@@ -108,10 +111,12 @@ namespace Eruru.Json {
 				return;
 			}
 			Indent--;
-			NewLineIndent ();
+			if (Stacks.Peek ().HasValue) {
+				NewLineIndent ();
+			}
 			TextWriter.Write (isArray ? JsonKeyword.RightBracket : JsonKeyword.RightBrace);
 			Stacks.Pop ();
-			Tail ();
+			NextStage ();
 		}
 
 		void CheckEnd () {
@@ -138,14 +143,15 @@ namespace Eruru.Json {
 					break;
 				case JsonTextWriterStage.ObjectValue:
 					TextWriter.Write (JsonKeyword.Semicolon);
-					if (!Config.Compress) {
+					if (!Compress) {
 						TextWriter.Write (JsonKeyword.Space);
 					}
 					break;
 			}
+			Stacks.Peek ().HasValue = true;
 		}
 
-		void Tail () {
+		void NextStage () {
 			switch (Stacks.Peek ().Stage) {
 				case JsonTextWriterStage.Value:
 					Stacks.Peek ().Stage = JsonTextWriterStage.End;
@@ -167,12 +173,12 @@ namespace Eruru.Json {
 		}
 
 		void NewLineIndent () {
-			if (Config.Compress) {
+			if (Compress) {
 				return;
 			}
 			TextWriter.WriteLine ();
 			for (int i = 0; i < Indent; i++) {
-				TextWriter.Write (JsonKeyword.Indent);
+				TextWriter.Write (Config.IndentString);
 			}
 		}
 

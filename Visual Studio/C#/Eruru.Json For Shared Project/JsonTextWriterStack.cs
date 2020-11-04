@@ -2,6 +2,7 @@
 
 	class JsonTextWriterStack {
 
+		public bool HasValue;
 		public JsonTextWriterStage Stage;
 
 		public JsonTextWriterStack (JsonTextWriterStage stage) {

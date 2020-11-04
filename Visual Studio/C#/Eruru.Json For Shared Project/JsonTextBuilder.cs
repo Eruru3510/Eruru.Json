@@ -13,7 +13,7 @@ namespace Eruru.Json {
 			}
 			Reader = reader ?? throw new ArgumentNullException (nameof (reader));
 		}
-		public JsonTextBuilder (IJsonReader reader, TextWriter textWriter, bool compress) : base (textWriter, compress) {
+		public JsonTextBuilder (IJsonReader reader, TextWriter textWriter, bool compress, JsonConfig config = null) : base (textWriter, compress, config) {
 			if (textWriter is null) {
 				throw new ArgumentNullException (nameof (textWriter));
 			}
