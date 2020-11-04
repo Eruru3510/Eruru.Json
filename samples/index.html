@@ -64,6 +64,8 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#jsonobjectparsejson">使用JsonObject.Parse解析Json字符串</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#null">Null值处理</a>
+    </li>
     </ul>
                     </li>
                 </ul>
@@ -149,7 +151,7 @@ string path = @&quot;d:\movie.json&quot;;
 File.WriteAllText (path, JsonSerializer.Serialize (movie));
 //以流的方式序列化对象到Json文本文件
 using (StreamWriter file = File.CreateText (path)) {
-    JsonSerializer.SerializeStreamWriter (file, movie);
+    JsonSerializer.Serialize (movie, file);
 }
 </code></pre>
 <h2 id="json_2">反序列化Json字符串到对象</h2>
@@ -200,13 +202,44 @@ using (StreamReader file = File.OpenText (path)) {
     ]
 }&quot;;
 JsonObject jsonObject = JsonObject.Parse (json);
-Console.WriteLine (jsonObject.ToString ());
+Console.WriteLine (jsonObject.Serialize (false));
 //{
 //  &quot;CPU&quot;: &quot;Intel&quot;,
 //  &quot;Drives&quot;: [
 //      &quot;DVD read/writer&quot;,
 //      &quot;500 gigabyte hard drive&quot;
 //  ]
+//}
+</code></pre>
+<h2 id="null">Null值处理</h2>
+<pre><code class="language-C#">public class Person {
+
+    public string Name { get; set; }
+    public int Age { get; set; }
+    public Person Partner { get; set; }
+    public decimal? Salary { get; set; }
+
+}
+</code></pre>
+<pre><code class="language-C#">Person person = new Person {
+    Name = &quot;Nigal Newborn&quot;,
+    Age = 1
+};
+string jsonIncludeNullValues = JsonSerializer.Serialize (person, false);
+Console.WriteLine (jsonIncludeNullValues);
+//{
+//  &quot;Name&quot;: &quot;Nigal Newborn&quot;,
+//  &quot;Age&quot;: 1,
+//  &quot;Partner&quot;: null,
+//  &quot;Salary&quot;: null
+//}
+string jsonIgnoreNullValues = JsonSerializer.Serialize (person, false, new JsonConfig {
+    IgnoreNull = true
+});
+Console.WriteLine (jsonIgnoreNullValues);
+//{
+//  &quot;Name&quot;: &quot;Nigal Newborn&quot;,
+//  &quot;Age&quot;: 1
 //}
 </code></pre>
               
