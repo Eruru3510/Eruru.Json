@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Reflection;
 
@@ -118,7 +119,7 @@ namespace Eruru.Json {
 			return new JsonDeserializer (new JsonValueReader (value), config);
 		}
 
-		object BuildValue (Type type, object instance = null) {
+		object BuildValue (Type type = null, object instance = null) {
 			object instanceValue = null;
 			Reader.ReadValue (
 				(value, valueType) => instanceValue = JsonAPI.ChangeType (value, type, Config),
@@ -142,7 +143,7 @@ namespace Eruru.Json {
 							throw new JsonException ("Array rank mismatch");
 						}
 						Type elementType = type.GetElementType ();
-						Array array = (Array)instance;
+						Array array = instance as Array;
 						bool create = false;
 						if (array is null) {
 							create = true;
@@ -198,7 +199,7 @@ namespace Eruru.Json {
 										instance = JsonAPI.CreateInstance (typeof (List<>).MakeGenericType (elementType));
 										break;
 									default:
-										throw new JsonIsNotSupportException (arrayType);
+										throw new JsonNotSupportException (arrayType);
 								}
 							} else {
 								instance = JsonAPI.CreateInstance (type);
@@ -206,9 +207,9 @@ namespace Eruru.Json {
 						}
 						IList list = (IList)instance;
 						int count = list.Count;
-						Reader.ReadArray (() => {
+						Reader.ReadArray (i => {
 							object instanceValue = null;
-							if (count > 0) {
+							if (i < count) {
 								instanceValue = list[0];
 								list.RemoveAt (0);
 							}
@@ -217,10 +218,10 @@ namespace Eruru.Json {
 						return instance;
 					}
 					default:
-						throw new JsonIsNotSupportException (arrayType);
+						throw new JsonNotSupportException (arrayType);
 				}
 			}
-			throw new JsonIsNotSupportException (type);
+			throw new JsonNotSupportException (type);
 		}
 
 		object BuildObject (Type type, object instance = null) {
@@ -250,30 +251,30 @@ namespace Eruru.Json {
 						}, () => {
 							switch (memberInfo.MemberType) {
 								case MemberTypes.Field:
-									fieldInfo.SetValue (instance, Read (fieldInfo.FieldType, fieldInfo.GetValue (instance), field));
+									fieldInfo.SetValue (instance, ConverterRead (fieldInfo.FieldType, fieldInfo.GetValue (instance), field));
 									break;
 								case MemberTypes.Property:
-									propertyInfo.SetValue (instance, Read (propertyInfo.PropertyType, propertyInfo.GetValue (instance, null), field), null);
+									propertyInfo.SetValue (instance, ConverterRead (propertyInfo.PropertyType, propertyInfo.GetValue (instance, null), field), null);
 									break;
 								default:
-									throw new JsonIsNotSupportException (memberInfo.MemberType);
+									throw new JsonNotSupportException (memberInfo.MemberType);
 							}
 						});
 						return instance;
 					}
 					default:
-						throw new JsonIsNotSupportException (objectType);
+						throw new JsonNotSupportException (objectType);
 				}
 			}
-			throw new JsonIsNotSupportException (type);
+			throw new JsonNotSupportException (type);
 		}
 
-		object Read (Type type, object instance, JsonField field) {
+		object ConverterRead (Type type, object instance, JsonField field) {
 			if (type is null) {
 				throw new ArgumentNullException (nameof (type));
 			}
 			if (field?.HasConverter ?? false) {
-				return JsonAPI.ChangeType (field.Read (BuildValue (null, instance), Config), type, Config);
+				return JsonAPI.ChangeType (field.Read (BuildValue (field.ConverterReadType, instance), Config), type, Config);
 			}
 			return BuildValue (type, instance);
 		}

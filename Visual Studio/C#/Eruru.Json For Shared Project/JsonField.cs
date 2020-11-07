@@ -12,6 +12,11 @@ namespace Eruru.Json {
 			get => Converters?.Length > 0;
 
 		}
+		public Type ConverterReadType {
+
+			get => Converters[0].BeforeType;
+
+		}
 
 		static readonly Dictionary<int, JsonConverter> CachedConverters = new Dictionary<int, JsonConverter> ();
 

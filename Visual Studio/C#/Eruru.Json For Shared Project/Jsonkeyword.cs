@@ -2,13 +2,12 @@
 
 	public static class JsonKeyword {
 
-		public const string Indent = "\t";
 		public const string Null = "null";
 		public const string True = "true";
 		public const string False = "false";
 		public const char SingleQuot = '\'';
 		public const char DoubleQuot = '"';
-		public const char Escape = '\\';
+		public const char Backslash = '\\';
 		public const char Comma = ',';
 		public const char Semicolon = ':';
 		public const char Space = ' ';

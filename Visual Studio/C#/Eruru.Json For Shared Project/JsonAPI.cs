@@ -135,8 +135,9 @@ namespace Eruru.Json {
 					return JsonValueType.Bool;
 				case JsonTokenType.String:
 					return JsonValueType.String;
+				default:
+					throw new JsonNotSupportException (tokenType);
 			}
-			throw new JsonIsNotSupportException (tokenType);
 		}
 
 		public static void SetExceptionMessage (object instance, string message) {
@@ -266,7 +267,7 @@ namespace Eruru.Json {
 			StringBuilder stringBuilder = new StringBuilder ();
 			for (int i = 0; i < text.Length; i++) {
 				switch (text[i]) {
-					case JsonKeyword.Escape:
+					case JsonKeyword.Backslash:
 						i++;
 						if (i < text.Length) {
 							int index = Array.FindIndex (Escapes, escape => escape.Key == text[i]);
@@ -274,11 +275,11 @@ namespace Eruru.Json {
 								stringBuilder.Append (Escapes[index].Value);
 								continue;
 							}
-							stringBuilder.Append (JsonKeyword.Escape);
+							stringBuilder.Append (JsonKeyword.Backslash);
 							stringBuilder.Append (text[i]);
 							continue;
 						}
-						stringBuilder.Append (JsonKeyword.Escape);
+						stringBuilder.Append (JsonKeyword.Backslash);
 						break;
 					default:
 						stringBuilder.Append (text[i]);
@@ -296,7 +297,7 @@ namespace Eruru.Json {
 			for (int i = 0; i < text.Length; i++) {
 				int index = Array.FindIndex (Escapes, escape => escape.Value == text[i]);
 				if (index > -1) {
-					stringBuilder.Append (JsonKeyword.Escape);
+					stringBuilder.Append (JsonKeyword.Backslash);
 					stringBuilder.Append (Escapes[index].Key);
 					continue;
 				}

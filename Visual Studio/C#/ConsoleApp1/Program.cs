@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.IO;
 using Eruru.Json;
 
 namespace ConsoleApp1 {
@@ -8,43 +10,34 @@ namespace ConsoleApp1 {
 
 		class Data {
 
-			public string Name { get; set; }
-			public DateTime Date;
-			public List<int> List;
-			public List<List<int>> JaggedList;
-			public int[] Array;
-			public int[,] MultidimensionalArray;
-			public int[][][] JaggedArray;
+			[JsonField (typeof (IntDatasConverter))]
+			public List<object> Datas;
+
+		}
+
+		class IntDatasConverter : IJsonConverter<List<object>, List<object>> {
+
+			public List<object> Read (List<object> datas) {
+				for (int i = 0; i < datas.Count; i++) {
+					if (Type.GetTypeCode (datas[i].GetType ()) == TypeCode.Int64) {
+						datas[i] = Convert.ToInt32 (datas[i]);
+					}
+				}
+				return datas;
+			}
+
+			public List<object> Write (List<object> value) {
+				throw new NotImplementedException ();
+			}
 
 		}
 
 		static void Main (string[] args) {
 			Console.Title = nameof (ConsoleApp1);
-			//JsonConfig.Default.Compress = false;
-			Data data = new Data () {
-				Name = "Eruru",
-				Date = DateTime.Now,
-				List = new List<int> () { 1, 2 },
-				JaggedList = new List<List<int>> () {
-					new List<int> () { 1 },
-					new List<int> () { 1, 2 }
-				},
-				Array = new int[] { 1, 2 },
-				MultidimensionalArray = new int[,] {
-					{ 1, 2 },
-					{ 3, 4 }
-				},
-				JaggedArray = new int[][][] {
-					new int[][] { new int[] { 1 } },
-					new int[][] { new int[] { 1, 2 } }
-				}
-			};
-			string json = JsonSerializer.Serialize (data);
-			data = JsonDeserializer.Deserialize<Data> (json);
-			Console.WriteLine (JsonSerializer.Serialize (data));
-			data = JsonDeserializer.Deserialize (json, data);
-			Console.WriteLine (JsonSerializer.Serialize (data));
-			Console.WriteLine (JsonValue.Parse ("{'empty array':[],'array':[[[]],[{}]]}").Serialize (false));
+			Data data = JsonDeserializer.Deserialize<Data> ("{'datas':[1,'a']}");
+			foreach (object value in data.Datas) {
+				Console.WriteLine ($"类型：{value.GetType ()} 值：{value}");
+			}
 			Console.ReadLine ();
 		}
 

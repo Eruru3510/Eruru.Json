@@ -31,7 +31,7 @@ namespace Eruru.Json {
 				Write (value, valueType);
 				return;
 			}
-			throw new JsonIsNotSupportException (valueType);
+			throw new JsonNotSupportException (value);
 		}
 
 		public void BeginArray () {
@@ -80,7 +80,7 @@ namespace Eruru.Json {
 					WriteString (Config.UTCTime ? dateTime.ToUniversalTime ().ToString ("yyyy-MM-ddTHH:mm:ssZ") : dateTime.ToString ());
 					break;
 				default:
-					throw new JsonIsNotSupportException (valueType);
+					throw new JsonNotSupportException (valueType);
 			}
 			NextStage ();
 		}
@@ -168,7 +168,7 @@ namespace Eruru.Json {
 					Stacks.Peek ().Stage = JsonTextWriterStage.ObjectKey;
 					break;
 				default:
-					throw new JsonIsNotSupportException (Stacks.Peek ());
+					throw new JsonNotSupportException (Stacks.Peek ().Stage);
 			}
 		}
 

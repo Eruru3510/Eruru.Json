@@ -28,7 +28,7 @@ namespace Eruru.Json {
 
 		public void BuildArray () {
 			BeginArray ();
-			Reader.ReadArray (() => BuildValue ());
+			Reader.ReadArray (i => BuildValue ());
 			EndArray ();
 		}
 

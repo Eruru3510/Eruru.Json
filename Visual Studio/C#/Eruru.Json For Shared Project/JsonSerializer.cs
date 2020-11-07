@@ -110,12 +110,12 @@ namespace Eruru.Json {
 			}
 			Stacks.Peek ().IsInitialized = true;
 			if (Stacks.Peek ().Instance is null) {
-				value (Write (), JsonValueType.Null);
+				value (ConverterWrite (), JsonValueType.Null);
 				return;
 			}
 			Stacks.Peek ().Type = Stacks.Peek ().Instance.GetType ();
 			if (JsonAPI.TryGetValueType (Stacks.Peek ().Type, Config, out JsonValueType valueType)) {
-				value (Write (), valueType);
+				value (ConverterWrite (), valueType);
 				return;
 			}
 			if (JsonAPI.TryGetArrayType (Stacks.Peek ().Type, out JsonArrayType arrayType)) {
@@ -128,10 +128,10 @@ namespace Eruru.Json {
 				readObject ();
 				return;
 			}
-			throw new JsonIsNotSupportException (Stacks.Peek ().Instance);
+			throw new JsonNotSupportException (Stacks.Peek ().Type);
 		}
 
-		public void ReadArray (JsonAction readValue) {
+		public void ReadArray (Action<int> readValue) {
 			if (readValue is null) {
 				throw new ArgumentNullException (nameof (readValue));
 			}
@@ -143,25 +143,28 @@ namespace Eruru.Json {
 						if (array.Rank == 1) {
 							for (int i = 0; i < array.Length; i++) {
 								Stacks.Push (new JsonSerializerStack (array.GetValue (i)));
-								readValue ();
+								readValue (i);
 								Stacks.Pop ();
 							}
 							return;
 						}
 						int[] indices = new int[array.Rank];
 						int dimension = 0;
+						int count = 0;
 						ForEachArray = () => {
 							int length = array.GetLength (dimension);
 							for (int i = 0; i < length; i++) {
 								indices[dimension] = i;
 								if (dimension == indices.Length - 1) {
 									Stacks.Push (new JsonSerializerStack (array.GetValue (indices)));
-									readValue ();
+									readValue (count);
 									Stacks.Pop ();
+									count++;
 									continue;
 								}
 								dimension++;
-								readValue ();
+								readValue (count);
+								count++;
 							}
 							dimension--;
 							if (dimension < 0) {
@@ -182,13 +185,13 @@ namespace Eruru.Json {
 					for (int i = 0; i < count; i++) {
 						getItemParameters[0] = i;
 						Stacks.Push (new JsonSerializerStack (getItemMethod.Invoke (Stacks.Peek ().Instance, getItemParameters)));
-						readValue ();
+						readValue (i);
 						Stacks.Pop ();
 					}
 					break;
 				}
 				default:
-					throw new JsonIsNotSupportException (Stacks.Peek ().Instance);
+					throw new JsonNotSupportException (Stacks.Peek ().ArrayType);
 			}
 		}
 
@@ -208,15 +211,16 @@ namespace Eruru.Json {
 						object Read () {
 							if (isRead) {
 								return instance;
+							} else {
+								isRead = true;
 							}
-							isRead = true;
 							switch (memberInfo.MemberType) {
 								case MemberTypes.Field:
 									return instance = fieldInfo.GetValue (Stacks.Peek ().Instance);
 								case MemberTypes.Property:
 									return instance = propertyInfo.GetValue (Stacks.Peek ().Instance, null);
 								default:
-									throw new JsonIsNotSupportException (memberInfo.MemberType);
+									throw new JsonNotSupportException (memberInfo.MemberType);
 							}
 						}
 						if (Config.IgnoreNull && Read () is null) {
@@ -230,7 +234,7 @@ namespace Eruru.Json {
 					});
 					break;
 				default:
-					throw new JsonIsNotSupportException (Stacks.Peek ().Instance);
+					throw new JsonNotSupportException (Stacks.Peek ().ObjectType);
 			}
 		}
 
@@ -252,7 +256,7 @@ namespace Eruru.Json {
 			JsonAPI.TryGetObjectType (Stacks.Peek ().Type, out Stacks.Peek ().ObjectType);
 		}
 
-		object Write () {
+		object ConverterWrite () {
 			return Stacks.Peek ().Field?.Write (Stacks.Peek ().Instance, Config) ?? Stacks.Peek ().Instance;
 		}
 

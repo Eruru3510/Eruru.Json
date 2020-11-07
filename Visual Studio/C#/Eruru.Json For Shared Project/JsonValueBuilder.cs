@@ -12,30 +12,52 @@ namespace Eruru.Json {
 
 		#region IJsonBuilder<JsonValue, JsonArray, JsonObject>
 
-		public JsonValue BuildValue () {
-			JsonValue jsonValue = null;
+		public JsonValue BuildValue (JsonValue value = null) {
+			JsonValue currentValue = null;
 			Reader.ReadValue (
-				(value, valueType) => jsonValue = new JsonValue (value, valueType),
-				() => jsonValue = BuildArray (),
-				() => jsonValue = BuildObject ()
+				(instanceValue, valueType) => {
+					if (value is null) {
+						currentValue = new JsonValue (instanceValue, valueType);
+						return;
+					}
+					value._Type = valueType;
+					value._Value = instanceValue;
+					currentValue = value;
+				},
+				() => currentValue = BuildArray (value),
+				() => currentValue = BuildObject (value)
 			);
-			return jsonValue;
+			return currentValue;
 		}
 
-		public JsonArray BuildArray () {
-			JsonArray array = new JsonArray ();
-			Reader.ReadArray (() => array.Add (BuildValue ()));
-			return array;
+		public JsonArray BuildArray (JsonArray array = null) {
+			JsonArray currentArray = array;
+			if (currentArray is null) {
+				currentArray = new JsonArray ();
+			}
+			int count = currentArray.Count;
+			Reader.ReadArray (i => {
+				JsonValue value = null;
+				if (i < count) {
+					value = currentArray.Get (i);
+				}
+				currentArray.Add (BuildValue (value));
+			});
+			currentArray.RemoveRange (0, count);
+			return currentArray;
 		}
 
-		public JsonObject BuildObject () {
-			JsonObject jsonObject = new JsonObject ();
+		public JsonObject BuildObject (JsonObject jsonObject = null) {
+			JsonObject currentObject = jsonObject;
+			if (currentObject is null) {
+				currentObject = new JsonObject ();
+			}
 			string keyName = null;
 			Reader.ReadObject (name => {
 				keyName = name;
 				return true;
-			}, () => jsonObject.Add (keyName, BuildValue ()));
-			return jsonObject;
+			}, () => currentObject.Add (keyName, BuildValue ()));
+			return currentObject;
 		}
 
 		#endregion

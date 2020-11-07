@@ -131,15 +131,24 @@ namespace Eruru.Json {
 
 		public new JsonValue this[int index] {
 
-			get {
-				while (index >= Count) {
-					Add (new JsonValue ());
-				}
-				return base[index];
+			get => GetOrCreate (index);
+
+			set {
+				GetOrCreate (index);
+				base[index] = value;
 			}
 
-			set => base[index] = value;
+		}
 
+		public JsonValue Get (int index) {
+			return base[index];
+		}
+
+		JsonValue GetOrCreate (int index) {
+			while (index >= Count) {
+				Add (new JsonValue ());
+			}
+			return base[index];
 		}
 
 		#endregion

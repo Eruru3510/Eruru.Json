@@ -9,7 +9,7 @@
 		public bool IgnoreNull { get; set; } = false;
 		public bool StringEnum { get; set; } = true;
 		public bool UTCTime { get; set; } = true;
-		public string IndentString { get; set; } = "	";
+		public string IndentString { get; set; } = "\t";
 
 		public JsonConfig () {
 

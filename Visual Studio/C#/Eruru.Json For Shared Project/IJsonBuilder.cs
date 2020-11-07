@@ -12,11 +12,11 @@
 
 	public interface IJsonBuilder<Value, Array, Object> {
 
-		Value BuildValue ();
+		Value BuildValue (Value value = default);
 
-		Array BuildArray ();
+		Array BuildArray (Array array = default);
 
-		Object BuildObject ();
+		Object BuildObject (Object jsonObject = default);
 
 	}
 

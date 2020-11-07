@@ -40,7 +40,7 @@ namespace Eruru.Json {
 						_Value = GetObject ();
 						break;
 					default:
-						throw new JsonIsNotSupportException (value);
+						throw new JsonNotSupportException (value);
 				}
 				_Type = value;
 			}
@@ -74,7 +74,7 @@ namespace Eruru.Json {
 					Value = key.Value;
 					return;
 				}
-				throw new JsonIsNotSupportException (value);
+				throw new JsonNotSupportException (value);
 			}
 
 		}
@@ -249,8 +249,8 @@ namespace Eruru.Json {
 
 		}
 
-		JsonValueType _Type;
-		object _Value;
+		internal JsonValueType _Type;
+		internal object _Value;
 
 		public JsonValue () {
 			_Type = JsonValueType.Null;
@@ -333,6 +333,22 @@ namespace Eruru.Json {
 				throw new ArgumentNullException (nameof (path));
 			}
 			return Build (new StreamReader (path));
+		}
+
+		public static JsonValue Parse (string text, JsonValue value = null) {
+			if (text is null) {
+				throw new ArgumentNullException (nameof (text));
+			}
+			return Build (new StringReader (text), value);
+		}
+
+		static JsonValue Build (TextReader textReader, JsonValue value = null) {
+			if (textReader is null) {
+				throw new ArgumentNullException (nameof (textReader));
+			}
+			using (JsonTextReader reader = new JsonTextReader (textReader)) {
+				return new JsonValueBuilder (reader).BuildValue (value);
+			}
 		}
 
 		public override string ToString () {
@@ -575,15 +591,6 @@ namespace Eruru.Json {
 			return jsonObject;
 		}
 
-		static JsonValue Build (TextReader textReader) {
-			if (textReader is null) {
-				throw new ArgumentNullException (nameof (textReader));
-			}
-			using (JsonTextReader reader = new JsonTextReader (textReader)) {
-				return new JsonValueBuilder (reader).BuildValue ();
-			}
-		}
-
 		#region IJsonSerializable
 
 		public string Serialize (JsonConfig config = null) {
@@ -669,6 +676,10 @@ namespace Eruru.Json {
 
 			set => GetArray ()[index] = value;
 
+		}
+
+		public JsonValue Get (int index) {
+			return GetArray ().Get (index);
 		}
 
 		#endregion

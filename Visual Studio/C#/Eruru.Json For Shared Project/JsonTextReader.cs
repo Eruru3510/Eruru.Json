@@ -8,7 +8,7 @@ namespace Eruru.Json {
 
 	public class JsonTextReader : IDisposable, IEnumerable<JsonToken>, IEnumerator<JsonToken>, IJsonReader {
 
-		public int BufferLength { get; set; } = 100;
+		public int BufferLength { get; set; } = 500;
 
 		readonly TextReader TextReader;
 		readonly Queue<int> Buffer = new Queue<int> ();
@@ -19,28 +19,46 @@ namespace Eruru.Json {
 		}
 
 		int Read () {
-			Buffer.Enqueue (TextReader.Read ());
-			if (Buffer.Count > BufferLength) {
+			while (Buffer.Count >= BufferLength) {
 				Buffer.Dequeue ();
 			}
+			Buffer.Enqueue (TextReader.Read ());
 			Index++;
 			return Buffer.Peek ();
 		}
 
+		char Peek () {
+			return (char)TextReader.Peek ();
+		}
+
+		char SkipWhiteSpace () {
+			while (TextReader.Peek () > -1) {
+				char character = Peek ();
+				if (char.IsWhiteSpace (character)) {
+					Read ();
+					continue;
+				}
+				return character;
+			}
+			return Peek ();
+		}
+
 		string ReadString (char end) {
+			Read ();
 			StringBuilder stringBuilder = new StringBuilder ();
 			while (TextReader.Peek () > -1) {
-				char character = (char)TextReader.Peek ();
-				if (character == JsonKeyword.Escape) {
+				char character = Peek ();
+				if (character == JsonKeyword.Backslash) {
 					stringBuilder.Append (character);
 					Read ();
 					if (TextReader.Peek () > -1) {
-						stringBuilder.Append ((char)TextReader.Peek ());
+						stringBuilder.Append (Peek ());
 						Read ();
 					}
 					continue;
 				}
 				if (character == end) {
+					Read ();
 					return stringBuilder.ToString ();
 				}
 				stringBuilder.Append (character);
@@ -52,14 +70,14 @@ namespace Eruru.Json {
 				Length = stringBuilder.Length,
 				Value = stringBuilder.ToString ()
 			};
-			throw new JsonTokenReaderException ("String has no closing quotation marks", Buffer, token);
+			throw new JsonTextReaderException ("字符串没有引号结束", Buffer, token);
 		}
 
 		string ReadNumber (out bool isFloat) {
 			isFloat = false;
 			StringBuilder stringBuilder = new StringBuilder ();
 			while (TextReader.Peek () > -1) {
-				char character = (char)TextReader.Peek ();
+				char character = Peek ();
 				if (!Array.Exists (JsonKeyword.Numbers, value => character == value)) {
 					break;
 				}
@@ -75,7 +93,7 @@ namespace Eruru.Json {
 		string ReadValue () {
 			StringBuilder stringBuilder = new StringBuilder ();
 			while (TextReader.Peek () > -1) {
-				char character = (char)TextReader.Peek ();
+				char character = Peek ();
 				if (!char.IsLetter (character)) {
 					break;
 				}
@@ -83,6 +101,13 @@ namespace Eruru.Json {
 				Read ();
 			}
 			return stringBuilder.ToString ();
+		}
+
+		string Expectation (params object[] values) {
+			if (values is null) {
+				throw new ArgumentNullException (nameof (values));
+			}
+			return $"期望是{string.Join ("或", Array.ConvertAll (values, value => value.ToString ()))}";
 		}
 
 		#region IDisposable
@@ -111,7 +136,6 @@ namespace Eruru.Json {
 
 			get {
 				if (NeedMoveNext) {
-					NeedMoveNext = false;
 					MoveNext ();
 				}
 				return _Current;
@@ -129,16 +153,13 @@ namespace Eruru.Json {
 		bool NeedMoveNext = true;
 
 		public bool MoveNext () {
+			NeedMoveNext = false;
+			JsonToken token = new JsonToken () {
+				Type = JsonTokenType.Unknown,
+				Index = Index
+			};
 			while (TextReader.Peek () > -1) {
-				char character = (char)TextReader.Peek ();
-				if (char.IsWhiteSpace (character)) {
-					Read ();
-					continue;
-				}
-				JsonToken token = new JsonToken {
-					Type = JsonTokenType.Unknown,
-					Index = Index
-				};
+				char character = SkipWhiteSpace ();
 				switch (character) {
 					case JsonKeyword.Comma:
 						token.Type = JsonTokenType.Comma;
@@ -170,13 +191,12 @@ namespace Eruru.Json {
 				switch (character) {
 					case JsonKeyword.SingleQuot:
 					case JsonKeyword.DoubleQuot:
-						Read ();
 						text = ReadString (character);
 						token.Type = JsonTokenType.String;
 						token.Length = text.Length + 2;
 						token.Value = JsonAPI.Escape (text);
-						Read ();
-						break;
+						_Current = token;
+						return true;
 				}
 				if (Array.Exists (JsonKeyword.Numbers, value => character == value)) {
 					text = ReadNumber (out bool isFloat);
@@ -197,8 +217,6 @@ namespace Eruru.Json {
 						_Current = token;
 						return true;
 					}
-				}
-				if (token.Type != JsonTokenType.Unknown) {
 					_Current = token;
 					return true;
 				}
@@ -223,11 +241,12 @@ namespace Eruru.Json {
 				_Current = token;
 				return true;
 			}
+			_Current = token;
 			return false;
 		}
 
 		public void Reset () {
-			throw new JsonException ($"{nameof (TextReader)} cannot {nameof (Reset)}");
+			throw new JsonException ($"{nameof (TextReader)}无法{nameof (Reset)}");
 		}
 
 		#endregion
@@ -257,14 +276,15 @@ namespace Eruru.Json {
 				value?.Invoke (Current.Value, JsonAPI.TokenTypeToValueType (Current.Type));
 				return;
 			}
-			throw new JsonTokenReaderException (
-				$"The expectation is {JsonTokenType.Value} or {JsonTokenType.LeftBracket} or {JsonTokenType.LeftBrace}",
+			throw new JsonTextReaderException (
+				Expectation (JsonTokenType.Null, JsonTokenType.Long, JsonTokenType.Decimal, JsonTokenType.Bool, JsonTokenType.String,
+				JsonTokenType.LeftBracket, JsonTokenType.LeftBrace),
 				Buffer,
 				Current
 			);
 		}
 
-		public void ReadArray (JsonAction readValue) {
+		public void ReadArray (Action<int> readValue) {
 			if (readValue is null) {
 				throw new ArgumentNullException (nameof (readValue));
 			}
@@ -278,10 +298,10 @@ namespace Eruru.Json {
 			if (readValue is null) {
 				throw new ArgumentNullException (nameof (readValue));
 			}
-			Read (false, key, readValue);
+			Read (false, key, i => readValue ());
 		}
 
-		void Read (bool isArray, JsonFunc<string, bool> key, JsonAction readValue) {
+		void Read (bool isArray, JsonFunc<string, bool> key, Action<int> readValue) {
 			if (!isArray && key is null) {
 				throw new ArgumentNullException (nameof (key));
 			}
@@ -290,11 +310,11 @@ namespace Eruru.Json {
 			}
 			JsonTokenType start = isArray ? JsonTokenType.LeftBracket : JsonTokenType.LeftBrace;
 			if (Current.Type != start) {
-				throw new JsonTokenReaderException ($"The expectation is {start}", Buffer, Current);
+				throw new JsonTextReaderException (Expectation (start), Buffer, Current);
 			}
 			JsonTokenType end = isArray ? JsonTokenType.RightBracket : JsonTokenType.RightBrace;
 			bool isFirst = true;
-			while (MoveNext ()) {
+			for (int i = 0; MoveNext (); i++) {
 				if (Current.Type == end) {
 					return;
 				}
@@ -302,35 +322,35 @@ namespace Eruru.Json {
 					isFirst = false;
 				} else {
 					if (Current.Type != JsonTokenType.Comma) {
-						throw new JsonTokenReaderException ($"The expectation is {JsonTokenType.Comma}", Buffer, Current);
+						throw new JsonTextReaderException (Expectation (JsonTokenType.Comma), Buffer, Current);
 					}
 					MoveNext ();
 				}
 				bool needReadValue = true;
 				if (!isArray) {
 					if (Current.Type != JsonTokenType.String) {
-						throw new JsonTokenReaderException ($"The expectation is {JsonTokenType.String}", Buffer, Current);
+						throw new JsonTextReaderException (Expectation (JsonTokenType.String), Buffer, Current);
 					}
 					needReadValue = key ((string)Current.Value);
 					MoveNext ();
 					if (Current.Type != JsonTokenType.Semicolon) {
-						throw new JsonTokenReaderException ($"The expectation is {JsonTokenType.Semicolon}", Buffer, Current);
+						throw new JsonTextReaderException (Expectation (JsonTokenType.Semicolon), Buffer, Current);
 					}
 					MoveNext ();
 				}
 				if (needReadValue) {
-					readValue ();
+					readValue (i);
 					continue;
 				}
 				ConsumptionValue ();
 			}
-			throw new JsonTokenReaderException ($"The expectation is {end}", Buffer, Current);
+			throw new JsonTextReaderException (Expectation (end), Buffer, Current);
 		}
 
 		void ConsumptionValue () {
 			ReadValue (
 				null,
-				() => ReadArray (ConsumptionValue),
+				() => ReadArray (i => ConsumptionValue ()),
 				() => ReadObject (name => true, ConsumptionValue)
 			);
 		}

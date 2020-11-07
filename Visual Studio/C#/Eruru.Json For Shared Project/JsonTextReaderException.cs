@@ -4,9 +4,9 @@ using System.Text;
 
 namespace Eruru.Json {
 
-	public class JsonTokenReaderException : Exception {
+	public class JsonTextReaderException : Exception {
 
-		public JsonTokenReaderException (string message, Queue<int> buffer, JsonToken token) {
+		public JsonTextReaderException (string message, Queue<int> buffer, JsonToken token) {
 			if (message is null) {
 				throw new ArgumentNullException (nameof (message));
 			}
@@ -15,7 +15,7 @@ namespace Eruru.Json {
 			}
 			StringBuilder stringBuilder = new StringBuilder ();
 			stringBuilder.AppendLine (message);
-			stringBuilder.AppendLine ($"Type: {token.Type} Index: {token.Index} Length: {token.Length} Value: {token.Value}");
+			stringBuilder.AppendLine ($"类型：{token.Type} 索引：{token.Index} 长度：{token.Length} 值：{token.Value}");
 			stringBuilder.AppendLine (new string (Array.ConvertAll (buffer.ToArray (), character => (char)character)));
 			JsonAPI.SetExceptionMessage (this, stringBuilder.ToString ());
 		}

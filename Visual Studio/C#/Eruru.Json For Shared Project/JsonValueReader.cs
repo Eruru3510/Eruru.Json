@@ -38,16 +38,17 @@ namespace Eruru.Json {
 				value (Values.Peek ().Value, Values.Peek ().Type);
 				return;
 			}
-			throw new JsonIsNotSupportException (Values.Peek ().Type);
+			throw new JsonNotSupportException (Values.Peek ().Type);
 		}
 
-		public void ReadArray (JsonAction readValue) {
+		public void ReadArray (Action<int> readValue) {
 			if (readValue is null) {
 				throw new ArgumentNullException (nameof (readValue));
 			}
-			foreach (JsonValue value in Values.Peek ()) {
-				Values.Push (value);
-				readValue ();
+			JsonArray array = Values.Peek ();
+			for (int i = 0; i < array.Count; i++) {
+				Values.Push (array[i]);
+				readValue (i);
 				Values.Pop ();
 			}
 		}
