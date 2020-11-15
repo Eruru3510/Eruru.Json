@@ -2,7 +2,6 @@
 
 namespace Eruru.Json {
 
-	[Flags]
 	public enum JsonTokenType {
 
 		Unknown = 1 << 0,

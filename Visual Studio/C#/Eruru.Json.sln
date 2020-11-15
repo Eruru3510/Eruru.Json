@@ -13,11 +13,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestProject1", "UnitTes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eruru.Json For .NET Standard 2.0", "Eruru.Json For .NET Standard 2.0\Eruru.Json For .NET Standard 2.0.csproj", "{C07B24D6-EFCF-4743-AAB0-9D8F46FA89EF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsFormsApp1", "WindowsFormsApp1\WindowsFormsApp1.csproj", "{B4221D1A-0086-429C-BD4A-C7B980A456BD}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Eruru.Json For Shared Project\Eruru.Json For Shared Project.projitems*{0d2015d5-1a78-4e35-bba3-5095d07fde1c}*SharedItemsImports = 13
+		Eruru.Json For Shared Project\Eruru.Json For Shared Project.projitems*{58e29772-832b-446b-9cf5-c2db05d9569f}*SharedItemsImports = 4
 		Eruru.Json For Shared Project\Eruru.Json For Shared Project.projitems*{b0b9c829-c15a-4b29-850a-fe155c8f65ac}*SharedItemsImports = 4
+		Eruru.Json For Shared Project\Eruru.Json For Shared Project.projitems*{b4221d1a-0086-429c-bd4a-c7b980a456bd}*SharedItemsImports = 4
 		Eruru.Json For Shared Project\Eruru.Json For Shared Project.projitems*{c07b24d6-efcf-4743-aab0-9d8f46fa89ef}*SharedItemsImports = 5
+		Eruru.Json For Shared Project\Eruru.Json For Shared Project.projitems*{d2440aaa-2ef7-4b06-9b91-76c87ffbd0f1}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +45,10 @@ Global
 		{C07B24D6-EFCF-4743-AAB0-9D8F46FA89EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C07B24D6-EFCF-4743-AAB0-9D8F46FA89EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C07B24D6-EFCF-4743-AAB0-9D8F46FA89EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4221D1A-0086-429C-BD4A-C7B980A456BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4221D1A-0086-429C-BD4A-C7B980A456BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4221D1A-0086-429C-BD4A-C7B980A456BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4221D1A-0086-429C-BD4A-C7B980A456BD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

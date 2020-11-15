@@ -40,6 +40,20 @@ namespace Eruru.Json {
 			return Serialize ();
 		}
 
+		public static implicit operator JsonObject (string text) {
+			if (text is null) {
+				throw new ArgumentNullException (nameof (text));
+			}
+			return Parse (text);
+		}
+
+		public static implicit operator string (JsonObject jsonObject) {
+			if (jsonObject is null) {
+				throw new ArgumentNullException (nameof (jsonObject));
+			}
+			return jsonObject.ToString ();
+		}
+
 		static JsonObject Build (TextReader textReader) {
 			if (textReader is null) {
 				throw new ArgumentNullException (nameof (textReader));

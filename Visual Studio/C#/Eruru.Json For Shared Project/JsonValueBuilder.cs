@@ -5,9 +5,11 @@ namespace Eruru.Json {
 	public class JsonValueBuilder : IJsonBuilder<JsonValue, JsonArray, JsonObject> {
 
 		readonly IJsonReader Reader;
+		readonly JsonConfig Config;
 
-		public JsonValueBuilder (IJsonReader reader) {
+		public JsonValueBuilder (IJsonReader reader, JsonConfig config = null) {
 			Reader = reader ?? throw new ArgumentNullException (nameof (reader));
+			Config = config;
 		}
 
 		#region IJsonBuilder<JsonValue, JsonArray, JsonObject>

@@ -33,12 +33,12 @@ namespace Eruru.Json {
 			return (a.GetHashCode () & b.GetHashCode ()) != 0;
 		}
 
-		public static bool TryGetValueType (Type type, JsonConfig config, out JsonValueType valueType) {
+		public static bool TryGetValueType (Type type, out JsonValueType valueType, JsonConfig config = null) {
 			if (type is null) {
 				throw new ArgumentNullException (nameof (type));
 			}
 			if (config is null) {
-				throw new ArgumentNullException (nameof (config));
+				config = JsonConfig.Default;
 			}
 			if (type.IsEnum && config.StringEnum) {
 				valueType = JsonValueType.String;
@@ -77,15 +77,12 @@ namespace Eruru.Json {
 			valueType = JsonValueType.Null;
 			return false;
 		}
-		public static bool TryGetValueType (object value, JsonConfig config, out JsonValueType valueType) {
-			if (config is null) {
-				throw new ArgumentNullException (nameof (config));
-			}
+		public static bool TryGetValueType (object value, out JsonValueType valueType, JsonConfig config = null) {
 			if (value is null) {
 				valueType = JsonValueType.Null;
 				return true;
 			}
-			return TryGetValueType (value.GetType (), config, out valueType);
+			return TryGetValueType (value.GetType (), out valueType, config);
 		}
 
 		public static bool TryGetArrayType (Type type, out JsonArrayType arrayType) {
@@ -218,10 +215,7 @@ namespace Eruru.Json {
 			return attributes.Length == 0 ? null : (T)attributes[0];
 		}
 
-		public static object ChangeType (object value, Type type, JsonConfig config) {
-			if (config is null) {
-				throw new ArgumentNullException (nameof (config));
-			}
+		public static object ChangeType (object value, Type type, JsonConfig config = null) {
 			if (type is null) {
 				return value;
 			}
@@ -229,6 +223,9 @@ namespace Eruru.Json {
 				return default;
 			}
 			if (type.IsEnum) {
+				if (config is null) {
+					config = JsonConfig.Default;
+				}
 				if (config.StringEnum) {
 					return Enum.Parse (type, value.ToString (), config.IgnoreCase);
 				}
@@ -258,35 +255,6 @@ namespace Eruru.Json {
 				throw new ArgumentNullException (nameof (config));
 			}
 			return a.Equals (b, GetStringComparison (config));
-		}
-
-		public static string Escape (string text) {
-			if (text is null) {
-				throw new ArgumentNullException (nameof (text));
-			}
-			StringBuilder stringBuilder = new StringBuilder ();
-			for (int i = 0; i < text.Length; i++) {
-				switch (text[i]) {
-					case JsonKeyword.Backslash:
-						i++;
-						if (i < text.Length) {
-							int index = Array.FindIndex (Escapes, escape => escape.Key == text[i]);
-							if (index > -1) {
-								stringBuilder.Append (Escapes[index].Value);
-								continue;
-							}
-							stringBuilder.Append (JsonKeyword.Backslash);
-							stringBuilder.Append (text[i]);
-							continue;
-						}
-						stringBuilder.Append (JsonKeyword.Backslash);
-						break;
-					default:
-						stringBuilder.Append (text[i]);
-						break;
-				}
-			}
-			return stringBuilder.ToString ();
 		}
 
 		public static string Unescape (string text) {

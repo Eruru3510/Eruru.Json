@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Eruru.Json {
 
@@ -11,11 +12,13 @@ namespace Eruru.Json {
 		public int BufferLength { get; set; } = 500;
 
 		readonly TextReader TextReader;
+		readonly JsonConfig Config;
 		readonly Queue<int> Buffer = new Queue<int> ();
 		int Index;
 
-		public JsonTextReader (TextReader textReader) {
+		public JsonTextReader (TextReader textReader, JsonConfig config = null) {
 			TextReader = textReader ?? throw new ArgumentNullException (nameof (textReader));
+			Config = config;
 		}
 
 		int Read () {
@@ -194,7 +197,7 @@ namespace Eruru.Json {
 						text = ReadString (character);
 						token.Type = JsonTokenType.String;
 						token.Length = text.Length + 2;
-						token.Value = JsonAPI.Escape (text);
+						token.Value = Regex.Unescape (text);
 						_Current = token;
 						return true;
 				}

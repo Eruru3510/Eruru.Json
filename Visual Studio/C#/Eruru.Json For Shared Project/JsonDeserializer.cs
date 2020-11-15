@@ -17,109 +17,19 @@ namespace Eruru.Json {
 			Config = config ?? JsonConfig.Default;
 		}
 
-		public static T Deserialize<T> (string text, JsonConfig config = null) {
-			if (text is null) {
-				throw new ArgumentNullException (nameof (text));
-			}
-			return Build<T> (new StringReader (text), config);
-		}
-		public static T Deserialize<T> (Stream stream, JsonConfig config = null) {
-			if (stream is null) {
-				throw new ArgumentNullException (nameof (stream));
-			}
-			return Build<T> (new StreamReader (stream), config);
-		}
-		public static T Deserialize<T> (StreamReader streamReader, JsonConfig config = null) {
-			if (streamReader is null) {
-				throw new ArgumentNullException (nameof (streamReader));
-			}
-			return Build<T> (streamReader, config);
-		}
-		public static T Deserialize<T> (JsonValue value, JsonConfig config = null) {
-			if (value is null) {
-				throw new ArgumentNullException (nameof (value));
-			}
-			return (T)Build (value, config).BuildValue (typeof (T));
-		}
-		public static T Deserialize<T> (JsonArray array, JsonConfig config = null) {
-			if (array is null) {
-				throw new ArgumentNullException (nameof (array));
-			}
-			return (T)Build (array, config).BuildArray (typeof (T));
-		}
-		public static T Deserialize<T> (JsonObject jsonObject, JsonConfig config = null) {
-			if (jsonObject is null) {
-				throw new ArgumentNullException (nameof (jsonObject));
-			}
-			return (T)Build (jsonObject, config).BuildObject (typeof (T));
-		}
-		public static T Deserialize<T> (string text, T instance, JsonConfig config = null) {
-			if (text is null) {
-				throw new ArgumentNullException (nameof (text));
-			}
-			return Build (new StringReader (text), config, instance);
-		}
-		public static T Deserialize<T> (Stream stream, T instance, JsonConfig config = null) {
-			if (stream is null) {
-				throw new ArgumentNullException (nameof (stream));
-			}
-			return Build (new StreamReader (stream), config, instance);
-		}
-		public static T Deserialize<T> (StreamReader streamReader, T instance, JsonConfig config = null) {
-			if (streamReader is null) {
-				throw new ArgumentNullException (nameof (streamReader));
-			}
-			return Build (streamReader, config, instance);
-		}
-		public static T Deserialize<T> (JsonValue value, T instance, JsonConfig config = null) {
-			if (value is null) {
-				throw new ArgumentNullException (nameof (value));
-			}
-			return (T)Build (value, config).BuildValue (typeof (T), instance);
-		}
-		public static T Deserialize<T> (JsonArray array, T instance, JsonConfig config = null) {
-			if (array is null) {
-				throw new ArgumentNullException (nameof (array));
-			}
-			return (T)Build (array, config).BuildArray (typeof (T), instance);
-		}
-		public static T Deserialize<T> (JsonObject jsonObject, T instance, JsonConfig config = null) {
-			if (jsonObject is null) {
-				throw new ArgumentNullException (nameof (jsonObject));
-			}
-			return (T)Build (jsonObject, config).BuildObject (typeof (T), instance);
+		public T BuildValue<T> (object instance = null) {
+			return (T)BuildValue (typeof (T), instance);
 		}
 
-		public static T DeserializeFile<T> (string path, JsonConfig config = null) {
-			if (path is null) {
-				throw new ArgumentNullException (nameof (path));
-			}
-			return Build<T> (new StreamReader (path), config);
-		}
-		public static T DeserializeFile<T> (string path, T instance, JsonConfig config = null) {
-			if (path is null) {
-				throw new ArgumentNullException (nameof (path));
-			}
-			return Build (new StreamReader (path), config, instance);
+		public T BuildArray<T> (object instance = null) {
+			return (T)BuildArray (typeof (T), instance);
 		}
 
-		static T Build<T> (TextReader textReader, JsonConfig config, T instance = default) {
-			if (textReader is null) {
-				throw new ArgumentNullException (nameof (textReader));
-			}
-			using (JsonTextReader reader = new JsonTextReader (textReader)) {
-				return (T)new JsonDeserializer (reader, config).BuildValue (typeof (T), instance);
-			}
+		public T BuildObject<T> (object instance = null) {
+			return (T)BuildObject (typeof (T), instance);
 		}
 
-		static JsonDeserializer Build (JsonValue value, JsonConfig config) {
-			if (value is null) {
-				throw new ArgumentNullException (nameof (value));
-			}
-			return new JsonDeserializer (new JsonValueReader (value), config);
-		}
-
-		object BuildValue (Type type = null, object instance = null) {
+		object BuildValue (Type type, object instance = null) {
 			object instanceValue = null;
 			Reader.ReadValue (
 				(value, valueType) => instanceValue = JsonAPI.ChangeType (value, type, Config),

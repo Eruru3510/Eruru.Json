@@ -50,7 +50,7 @@ namespace UnitTestProject1 {
 					"Admin"
 				}
 			};
-			string json = JsonSerializer.Serialize (account, false);
+			string json = JsonConvert.Serialize (account, false);
 			//{
 			//	"Email": "james@example.com",
 			//	"Active": true,
@@ -80,9 +80,9 @@ namespace UnitTestProject1 {
 				Year = 1995
 			};
 			string path = @"d:\movie.json";
-			File.WriteAllText (path, JsonSerializer.Serialize (movie));
+			File.WriteAllText (path, JsonConvert.Serialize (movie));
 			using (StreamWriter file = File.CreateText (path)) {
-				JsonSerializer.Serialize (movie, file);
+				JsonConvert.Serialize (movie, file);
 			}
 			string json = File.ReadAllText (path);
 			Console.WriteLine (json);
@@ -100,7 +100,7 @@ namespace UnitTestProject1 {
 					'Admin'
 				]
 			}";
-			Account account = JsonDeserializer.Deserialize<Account> (json);
+			Account account = JsonConvert.Deserialize<Account> (json);
 			Console.WriteLine (account.Email);
 			//james@example.com
 			Assert.AreEqual ("james@example.com", account.Email);
@@ -109,9 +109,9 @@ namespace UnitTestProject1 {
 		[TestMethod]
 		public void DeserializeJsonFromAFile () {
 			string path = @"d:\movie.json";
-			Movie movie = JsonDeserializer.Deserialize<Movie> (File.ReadAllText (path));
+			Movie movie = JsonConvert.Deserialize<Movie> (File.ReadAllText (path));
 			using (StreamReader file = File.OpenText (path)) {
-				Movie movie2 = JsonDeserializer.Deserialize<Movie> (file);
+				Movie movie2 = JsonConvert.Deserialize<Movie> (file);
 			}
 		}
 
@@ -149,7 +149,7 @@ namespace UnitTestProject1 {
 				Name = "Nigal Newborn",
 				Age = 1
 			};
-			string jsonIncludeNullValues = JsonSerializer.Serialize (person, false);
+			string jsonIncludeNullValues = JsonConvert.Serialize (person, false);
 			Console.WriteLine (jsonIncludeNullValues);
 			//{
 			//	"Name": "Nigal Newborn",
@@ -157,7 +157,7 @@ namespace UnitTestProject1 {
 			//	"Partner": null,
 			//	"Salary": null
 			//}
-			string jsonIgnoreNullValues = JsonSerializer.Serialize (person, false, new JsonConfig {
+			string jsonIgnoreNullValues = JsonConvert.Serialize (person, false, new JsonConfig {
 				IgnoreNull = true
 			});
 			Console.WriteLine (jsonIgnoreNullValues);

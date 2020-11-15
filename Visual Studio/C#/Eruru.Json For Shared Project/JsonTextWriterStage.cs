@@ -2,7 +2,6 @@
 
 namespace Eruru.Json {
 
-	[Flags]
 	public enum JsonTextWriterStage {
 
 		End = 1 << 0,

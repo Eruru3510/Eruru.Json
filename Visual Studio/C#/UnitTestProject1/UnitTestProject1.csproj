@@ -55,12 +55,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Eruru.Json For .NET Framework 2.0\Eruru.Json For .NET Framework 2.0.csproj">
-      <Project>{b0b9c829-c15a-4b29-850a-fe155c8f65ac}</Project>
-      <Name>Eruru.Json For .NET Framework 2.0</Name>
-    </ProjectReference>
-  </ItemGroup>
+  <Import Project="..\Eruru.Json For Shared Project\Eruru.Json For Shared Project.projitems" Label="Shared" />
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

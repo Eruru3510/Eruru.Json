@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 
 namespace Eruru.Json {
 
-	public class JsonValue : IJsonSerializable, IEnumerable, IJsonArray, IJsonObject {
+	public class JsonValue : IJsonSerializable, IEnumerable, IConvertible, IComparable, IJsonArray, IJsonObject {
 
 		public JsonValueType Type {
 
@@ -51,7 +53,7 @@ namespace Eruru.Json {
 			get => _Value;
 
 			set {
-				if (JsonAPI.TryGetValueType (value, JsonConfig.Default, out JsonValueType valueType)) {
+				if (JsonAPI.TryGetValueType (value, out JsonValueType valueType)) {
 					_Type = valueType;
 					_Value = value;
 					return;
@@ -351,114 +353,6 @@ namespace Eruru.Json {
 			}
 		}
 
-		public override string ToString () {
-			return Serialize ();
-		}
-
-		public static implicit operator byte (JsonValue value) {
-			return value?.ToByte () ?? default;
-		}
-		public static implicit operator ushort (JsonValue value) {
-			return value?.ToUShort () ?? default;
-		}
-		public static implicit operator uint (JsonValue value) {
-			return value?.ToUInt () ?? default;
-		}
-		public static implicit operator ulong (JsonValue value) {
-			return value?.ToULong () ?? default;
-		}
-		public static implicit operator sbyte (JsonValue value) {
-			return value?.ToSByte () ?? default;
-		}
-		public static implicit operator short (JsonValue value) {
-			return value?.ToShort () ?? default;
-		}
-		public static implicit operator int (JsonValue value) {
-			return value?.ToInt () ?? default;
-		}
-		public static implicit operator long (JsonValue value) {
-			return value?.ToLong () ?? default;
-		}
-		public static implicit operator float (JsonValue value) {
-			return value?.ToFloat () ?? default;
-		}
-		public static implicit operator double (JsonValue value) {
-			return value?.ToDouble () ?? default;
-		}
-		public static implicit operator decimal (JsonValue value) {
-			return value?.ToDecimal () ?? default;
-		}
-		public static implicit operator bool (JsonValue value) {
-			return value?.ToBool () ?? default;
-		}
-		public static implicit operator char (JsonValue value) {
-			return value?.ToChar () ?? default;
-		}
-		public static implicit operator string (JsonValue value) {
-			return value?.ToString () ?? default;
-		}
-		public static implicit operator DateTime (JsonValue value) {
-			return value?.ToDateTime () ?? default;
-		}
-		public static implicit operator JsonArray (JsonValue value) {
-			return value?.GetArray () ?? default;
-		}
-		public static implicit operator JsonObject (JsonValue value) {
-			return value?.GetObject () ?? default;
-		}
-
-		public static implicit operator JsonValue (byte value) {
-			return new JsonValue (value);
-		}
-		public static implicit operator JsonValue (ushort value) {
-			return new JsonValue (value);
-		}
-		public static implicit operator JsonValue (uint value) {
-			return new JsonValue (value);
-		}
-		public static implicit operator JsonValue (ulong value) {
-			return new JsonValue (value);
-		}
-		public static implicit operator JsonValue (sbyte value) {
-			return new JsonValue (value);
-		}
-		public static implicit operator JsonValue (short value) {
-			return new JsonValue (value);
-		}
-		public static implicit operator JsonValue (int value) {
-			return new JsonValue (value);
-		}
-		public static implicit operator JsonValue (long value) {
-			return new JsonValue (value);
-		}
-		public static implicit operator JsonValue (float value) {
-			return new JsonValue (value);
-		}
-		public static implicit operator JsonValue (double value) {
-			return new JsonValue (value);
-		}
-		public static implicit operator JsonValue (decimal value) {
-			return new JsonValue (value);
-		}
-		public static implicit operator JsonValue (bool value) {
-			return new JsonValue (value);
-		}
-		public static implicit operator JsonValue (char value) {
-			return new JsonValue (value);
-		}
-		public static implicit operator JsonValue (string value) {
-			return new JsonValue (value);
-		}
-		public static implicit operator JsonValue (DateTime value) {
-			return new JsonValue (value);
-		}
-		public static implicit operator JsonValue (JsonArray value) {
-			return new JsonValue (value);
-		}
-		public static implicit operator JsonValue (JsonObject value) {
-			return new JsonValue (value);
-		}
-
 		public byte ToByte (byte defaultValue = default) {
 			try {
 				return Convert.ToByte (Value);
@@ -591,6 +485,910 @@ namespace Eruru.Json {
 			return jsonObject;
 		}
 
+		int GetHashCode (JsonValueType valueType) {
+			switch (valueType) {
+				case JsonValueType.Long:
+					if (Type != JsonValueType.Long) {
+						return ToLong ().GetHashCode ();
+					}
+					return GetHashCode ();
+				case JsonValueType.Decimal:
+					if (Type != JsonValueType.Decimal) {
+						return ToDecimal ().GetHashCode ();
+					}
+					return GetHashCode ();
+				case JsonValueType.Bool:
+					if (Type != JsonValueType.Bool) {
+						return ToBool ().GetHashCode ();
+					}
+					return GetHashCode ();
+				case JsonValueType.String:
+					if (Type != JsonValueType.String) {
+						return ToString ().GetHashCode ();
+					}
+					return GetHashCode ();
+				case JsonValueType.DateTime:
+					if (Type != JsonValueType.DateTime) {
+						return ToDateTime ().GetHashCode ();
+					}
+					return GetHashCode ();
+				default:
+					throw new JsonNotSupportException (valueType);
+			}
+		}
+
+		#region Override
+
+		public override bool Equals (object obj) {
+			if (Value is null || obj is null) {
+				return Value == obj;
+			}
+			if (obj is JsonValue value) {
+				return Equals (value.Value);
+			}
+			if (obj is JsonArray array) {
+				if (Type != JsonValueType.Array) {
+					return false;
+				}
+				return ToArray ().Equals (array);
+			}
+			if (obj is JsonObject jsonObject) {
+				if (Type != JsonValueType.Object) {
+					return false;
+				}
+				throw new NotImplementedException ();
+				return ToObject ().Equals (jsonObject);
+			}
+			if (JsonAPI.TryGetValueType (obj, out JsonValueType valueType)) {
+				switch (valueType) {
+					case JsonValueType.Long:
+					case JsonValueType.Decimal:
+					case JsonValueType.Bool:
+					case JsonValueType.String:
+					case JsonValueType.DateTime:
+						return GetHashCode (valueType) == obj.GetHashCode ();
+					default:
+						throw new JsonNotSupportException (valueType);
+				}
+			}
+			throw new JsonNotSupportException (obj);
+		}
+
+		public override int GetHashCode () {
+			return Value?.GetHashCode () ?? default;
+		}
+
+		public override string ToString () {
+			return Serialize ();
+		}
+
+		#endregion
+
+		#region Implicit Operator
+
+		public static implicit operator byte (JsonValue value) {
+			return value?.ToByte () ?? default;
+		}
+		public static implicit operator ushort (JsonValue value) {
+			return value?.ToUShort () ?? default;
+		}
+		public static implicit operator uint (JsonValue value) {
+			return value?.ToUInt () ?? default;
+		}
+		public static implicit operator ulong (JsonValue value) {
+			return value?.ToULong () ?? default;
+		}
+		public static implicit operator sbyte (JsonValue value) {
+			return value?.ToSByte () ?? default;
+		}
+		public static implicit operator short (JsonValue value) {
+			return value?.ToShort () ?? default;
+		}
+		public static implicit operator int (JsonValue value) {
+			return value?.ToInt () ?? default;
+		}
+		public static implicit operator long (JsonValue value) {
+			return value?.ToLong () ?? default;
+		}
+		public static implicit operator float (JsonValue value) {
+			return value?.ToFloat () ?? default;
+		}
+		public static implicit operator double (JsonValue value) {
+			return value?.ToDouble () ?? default;
+		}
+		public static implicit operator decimal (JsonValue value) {
+			return value?.ToDecimal () ?? default;
+		}
+		public static implicit operator bool (JsonValue value) {
+			return value?.ToBool () ?? default;
+		}
+		public static implicit operator char (JsonValue value) {
+			return value?.ToChar () ?? default;
+		}
+		public static implicit operator string (JsonValue value) {
+			return value?.ToString () ?? default;
+		}
+		public static implicit operator DateTime (JsonValue value) {
+			return value?.ToDateTime () ?? default;
+		}
+		public static implicit operator JsonArray (JsonValue value) {
+			return value?.GetArray () ?? default;
+		}
+		public static implicit operator JsonObject (JsonValue value) {
+			return value?.GetObject () ?? default;
+		}
+
+		public static implicit operator JsonValue (byte value) {
+			return new JsonValue (value);
+		}
+		public static implicit operator JsonValue (ushort value) {
+			return new JsonValue (value);
+		}
+		public static implicit operator JsonValue (uint value) {
+			return new JsonValue (value);
+		}
+		public static implicit operator JsonValue (ulong value) {
+			return new JsonValue (value);
+		}
+		public static implicit operator JsonValue (sbyte value) {
+			return new JsonValue (value);
+		}
+		public static implicit operator JsonValue (short value) {
+			return new JsonValue (value);
+		}
+		public static implicit operator JsonValue (int value) {
+			return new JsonValue (value);
+		}
+		public static implicit operator JsonValue (long value) {
+			return new JsonValue (value);
+		}
+		public static implicit operator JsonValue (float value) {
+			return new JsonValue (value);
+		}
+		public static implicit operator JsonValue (double value) {
+			return new JsonValue (value);
+		}
+		public static implicit operator JsonValue (decimal value) {
+			return new JsonValue (value);
+		}
+		public static implicit operator JsonValue (bool value) {
+			return new JsonValue (value);
+		}
+		public static implicit operator JsonValue (char value) {
+			return new JsonValue (value);
+		}
+		public static implicit operator JsonValue (string value) {
+			return new JsonValue (value);
+		}
+		public static implicit operator JsonValue (DateTime value) {
+			return new JsonValue (value);
+		}
+		public static implicit operator JsonValue (JsonArray value) {
+			return new JsonValue (value);
+		}
+		public static implicit operator JsonValue (JsonObject value) {
+			return new JsonValue (value);
+		}
+
+		#endregion
+
+		#region Operator ==
+
+		public static bool operator == (JsonValue a, byte b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+		public static bool operator == (JsonValue a, ushort b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+		public static bool operator == (JsonValue a, uint b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+		public static bool operator == (JsonValue a, ulong b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+		public static bool operator == (JsonValue a, sbyte b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+		public static bool operator == (JsonValue a, short b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+		public static bool operator == (JsonValue a, int b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+		public static bool operator == (JsonValue a, long b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+		public static bool operator == (JsonValue a, float b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+		public static bool operator == (JsonValue a, double b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+		public static bool operator == (JsonValue a, decimal b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+		public static bool operator == (JsonValue a, bool b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+		public static bool operator == (JsonValue a, char b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+		public static bool operator == (JsonValue a, string b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+		public static bool operator == (JsonValue a, DateTime b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+		public static bool operator == (JsonValue a, JsonValue b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+		public static bool operator == (JsonValue a, JsonArray b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+		public static bool operator == (JsonValue a, JsonObject b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.Equals (b);
+		}
+
+		public static bool operator == (byte a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return b.Equals (a);
+		}
+		public static bool operator == (ushort a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return b.Equals (a);
+		}
+		public static bool operator == (uint a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return b.Equals (a);
+		}
+		public static bool operator == (ulong a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return b.Equals (a);
+		}
+		public static bool operator == (sbyte a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return b.Equals (a);
+		}
+		public static bool operator == (short a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return b.Equals (a);
+		}
+		public static bool operator == (int a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return b.Equals (a);
+		}
+		public static bool operator == (long a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return b.Equals (a);
+		}
+		public static bool operator == (float a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return b.Equals (a);
+		}
+		public static bool operator == (double a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return b.Equals (a);
+		}
+		public static bool operator == (decimal a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return b.Equals (a);
+		}
+		public static bool operator == (bool a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return b.Equals (a);
+		}
+		public static bool operator == (char a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return b.Equals (a);
+		}
+		public static bool operator == (string a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return b.Equals (a);
+		}
+		public static bool operator == (DateTime a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return b.Equals (a);
+		}
+		public static bool operator == (JsonArray a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return b.Equals (a);
+		}
+		public static bool operator == (JsonObject a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return b.Equals (a);
+		}
+
+		#endregion
+
+		#region Operator !=
+
+		public static bool operator != (JsonValue a, byte b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+		public static bool operator != (JsonValue a, ushort b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+		public static bool operator != (JsonValue a, uint b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+		public static bool operator != (JsonValue a, ulong b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+		public static bool operator != (JsonValue a, sbyte b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+		public static bool operator != (JsonValue a, short b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+		public static bool operator != (JsonValue a, int b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+		public static bool operator != (JsonValue a, long b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+		public static bool operator != (JsonValue a, float b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+		public static bool operator != (JsonValue a, double b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+		public static bool operator != (JsonValue a, decimal b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+		public static bool operator != (JsonValue a, bool b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+		public static bool operator != (JsonValue a, char b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+		public static bool operator != (JsonValue a, string b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+		public static bool operator != (JsonValue a, DateTime b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+		public static bool operator != (JsonValue a, JsonValue b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+		public static bool operator != (JsonValue a, JsonArray b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+		public static bool operator != (JsonValue a, JsonObject b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return !a.Equals (b);
+		}
+
+		public static bool operator != (byte a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return !b.Equals (a);
+		}
+		public static bool operator != (ushort a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return !b.Equals (a);
+		}
+		public static bool operator != (uint a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return !b.Equals (a);
+		}
+		public static bool operator != (ulong a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return !b.Equals (a);
+		}
+		public static bool operator != (sbyte a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return !b.Equals (a);
+		}
+		public static bool operator != (short a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return !b.Equals (a);
+		}
+		public static bool operator != (int a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return !b.Equals (a);
+		}
+		public static bool operator != (long a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return !b.Equals (a);
+		}
+		public static bool operator != (float a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return !b.Equals (a);
+		}
+		public static bool operator != (double a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return !b.Equals (a);
+		}
+		public static bool operator != (decimal a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return !b.Equals (a);
+		}
+		public static bool operator != (bool a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return !b.Equals (a);
+		}
+		public static bool operator != (char a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return !b.Equals (a);
+		}
+		public static bool operator != (string a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return !b.Equals (a);
+		}
+		public static bool operator != (DateTime a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return !b.Equals (a);
+		}
+		public static bool operator != (JsonArray a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return !b.Equals (a);
+		}
+		public static bool operator != (JsonObject a, JsonValue b) {
+			if (b is null) {
+				throw new ArgumentNullException (nameof (b));
+			}
+			return !b.Equals (a);
+		}
+
+		#endregion
+
+		#region Operator >
+
+		public static bool operator > (JsonValue a, byte b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+		public static bool operator > (JsonValue a, ushort b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+		public static bool operator > (JsonValue a, uint b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+		public static bool operator > (JsonValue a, ulong b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+		public static bool operator > (JsonValue a, sbyte b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+		public static bool operator > (JsonValue a, short b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+		public static bool operator > (JsonValue a, int b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+		public static bool operator > (JsonValue a, long b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+		public static bool operator > (JsonValue a, float b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+		public static bool operator > (JsonValue a, double b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+		public static bool operator > (JsonValue a, decimal b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+		public static bool operator > (JsonValue a, bool b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+		public static bool operator > (JsonValue a, char b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+		public static bool operator > (JsonValue a, string b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+		public static bool operator > (JsonValue a, DateTime b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+		public static bool operator > (JsonValue a, JsonValue b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+		public static bool operator > (JsonValue a, JsonArray b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+		public static bool operator > (JsonValue a, JsonObject b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) > 0;
+		}
+
+		#endregion
+
+		#region Operator <
+
+		public static bool operator < (JsonValue a, byte b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+		public static bool operator < (JsonValue a, ushort b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+		public static bool operator < (JsonValue a, uint b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+		public static bool operator < (JsonValue a, ulong b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+		public static bool operator < (JsonValue a, sbyte b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+		public static bool operator < (JsonValue a, short b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+		public static bool operator < (JsonValue a, int b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+		public static bool operator < (JsonValue a, long b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+		public static bool operator < (JsonValue a, float b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+		public static bool operator < (JsonValue a, double b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+		public static bool operator < (JsonValue a, decimal b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+		public static bool operator < (JsonValue a, bool b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+		public static bool operator < (JsonValue a, char b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+		public static bool operator < (JsonValue a, string b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+		public static bool operator < (JsonValue a, DateTime b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+		public static bool operator < (JsonValue a, JsonValue b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+		public static bool operator < (JsonValue a, JsonArray b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+		public static bool operator < (JsonValue a, JsonObject b) {
+			if (a is null) {
+				throw new ArgumentNullException (nameof (a));
+			}
+			return a.CompareTo (b) < 0;
+		}
+
+		#endregion
+
+		#region Operator +
+
+		public static int operator + (JsonValue a, byte b) {
+			return a.Byte + b;
+		}
+		public static int operator + (JsonValue a, ushort b) {
+			return a.UShort + b;
+		}
+		public static uint operator + (JsonValue a, uint b) {
+			return a.UInt + b;
+		}
+		public static ulong operator + (JsonValue a, ulong b) {
+			return a.ULong + b;
+		}
+		public static int operator + (JsonValue a, sbyte b) {
+			return a.SByte + b;
+		}
+		public static int operator + (JsonValue a, short b) {
+			return a.Short + b;
+		}
+		public static int operator + (JsonValue a, int b) {
+			return a.Int + b;
+		}
+		public static long operator + (JsonValue a, long b) {
+			return a.Long + b;
+		}
+		public static float operator + (JsonValue a, float b) {
+			return a.Float + b;
+		}
+		public static double operator + (JsonValue a, double b) {
+			return a.Double + b;
+		}
+		public static decimal operator + (JsonValue a, decimal b) {
+			return a.Decimal + b;
+		}
+		public static bool operator + (JsonValue a, bool b) {
+			return a.Bool != b;
+		}
+		public static int operator + (JsonValue a, char b) {
+			return a.Char + b;
+		}
+		public static string operator + (JsonValue a, string b) {
+			return a.String + b;
+		}
+		public static DateTime operator + (JsonValue a, DateTime b) {
+			return new DateTime (a.ToDateTime ().Ticks + b.Ticks);
+		}
+		public static JsonValue operator + (JsonValue a, JsonValue b) {
+			throw new NotImplementedException ();
+		}
+		public static JsonArray operator + (JsonValue a, JsonArray b) {
+			throw new NotImplementedException ();
+		}
+		public static JsonObject operator + (JsonValue a, JsonObject b) {
+			throw new NotImplementedException ();
+		}
+
+		#endregion
+
 		#region IJsonSerializable
 
 		public string Serialize (JsonConfig config = null) {
@@ -664,6 +1462,103 @@ namespace Eruru.Json {
 				return GetArray ().GetEnumerator ();
 			}
 			return GetObject ().GetEnumerator ();
+		}
+
+		#endregion
+
+		#region IConvertible
+
+		public TypeCode GetTypeCode () {
+			return System.Type.GetTypeCode (Value?.GetType ());
+		}
+
+		public object ToType (Type conversionType, IFormatProvider provider) {
+			return JsonAPI.ChangeType (Value, conversionType);
+		}
+
+		public bool ToBoolean (IFormatProvider provider) {
+			return ToBool ();
+		}
+		public char ToChar (IFormatProvider provider) {
+			return ToChar ();
+		}
+		public sbyte ToSByte (IFormatProvider provider) {
+			return ToSByte ();
+		}
+		public byte ToByte (IFormatProvider provider) {
+			return ToByte ();
+		}
+		public short ToInt16 (IFormatProvider provider) {
+			return ToShort ();
+		}
+		public ushort ToUInt16 (IFormatProvider provider) {
+			return ToUShort ();
+		}
+		public int ToInt32 (IFormatProvider provider) {
+			return ToInt ();
+		}
+		public uint ToUInt32 (IFormatProvider provider) {
+			return ToUInt ();
+		}
+		public long ToInt64 (IFormatProvider provider) {
+			return ToLong ();
+		}
+		public ulong ToUInt64 (IFormatProvider provider) {
+			return ToULong ();
+		}
+		public float ToSingle (IFormatProvider provider) {
+			return ToFloat ();
+		}
+		public double ToDouble (IFormatProvider provider) {
+			return ToDouble ();
+		}
+		public decimal ToDecimal (IFormatProvider provider) {
+			return ToDecimal ();
+		}
+		public DateTime ToDateTime (IFormatProvider provider) {
+			return ToDateTime ();
+		}
+		public string ToString (IFormatProvider provider) {
+			return ToString ();
+		}
+
+		#endregion
+
+		#region IComparable
+
+		public int CompareTo (object obj) {
+			if (Value is null) {
+				return obj is null ? 0 : 1;
+			}
+			if (obj is null) {
+				return Value is null ? 0 : -1;
+			}
+			if (obj is JsonValue value) {
+				return CompareTo (value.Value);
+			}
+			if (obj is JsonArray) {
+				return 0;
+			}
+			if (obj is JsonObject) {
+				return 0;
+			}
+			if (JsonAPI.TryGetValueType (obj, out JsonValueType valueType)) {
+				switch (valueType) {
+					case JsonValueType.Long:
+						return ToLong ().CompareTo (Convert.ToInt64 (obj));
+					case JsonValueType.Decimal:
+						return ToDecimal ().CompareTo (Convert.ToDecimal (obj));
+					case JsonValueType.Bool:
+						return ToBool ().CompareTo (Convert.ToBoolean (obj));
+					case JsonValueType.String:
+						return ToString ().CompareTo (Convert.ToString (obj));
+					case JsonValueType.DateTime:
+						return ToDateTime ().CompareTo (Convert.ToDateTime (obj));
+					default:
+						throw new JsonNotSupportException (valueType);
+				}
+			}
+			throw new JsonNotSupportException (obj);
 		}
 
 		#endregion

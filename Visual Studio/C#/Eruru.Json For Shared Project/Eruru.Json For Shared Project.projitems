@@ -19,6 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)JsonArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonArrayType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonConvert.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonDeserializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonException.cs" />

@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Eruru.Json {
 
-	public class JsonArray : List<JsonValue>, IJsonSerializable, IJsonArray {
+	public class JsonArray : List<JsonValue>, IJsonSerializable, IJsonArray, IEquatable<JsonArray> {
 
 		public JsonArray () {
 
@@ -50,6 +50,20 @@ namespace Eruru.Json {
 
 		public override string ToString () {
 			return Serialize ();
+		}
+
+		public static implicit operator JsonArray (string text) {
+			if (text is null) {
+				throw new ArgumentNullException (nameof (text));
+			}
+			return Parse (text);
+		}
+
+		public static implicit operator string (JsonArray array) {
+			if (array is null) {
+				throw new ArgumentNullException (nameof (array));
+			}
+			return array.ToString ();
 		}
 
 		static JsonArray Build (TextReader textReader) {
@@ -149,6 +163,25 @@ namespace Eruru.Json {
 				Add (new JsonValue ());
 			}
 			return base[index];
+		}
+
+		#endregion
+
+		#region IEquatable<JsonArray>
+
+		public bool Equals (JsonArray other) {
+			if (other is null) {
+				throw new ArgumentNullException (nameof (other));
+			}
+			if (Count != other.Count) {
+				return false;
+			}
+			for (int i = 0; i < Count; i++) {
+				if (base[i] != other[i]) {
+					return false;
+				}
+			}
+			return true;
 		}
 
 		#endregion

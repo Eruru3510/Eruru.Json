@@ -27,7 +27,7 @@ namespace Eruru.Json {
 		}
 
 		public void Write (object value) {
-			if (JsonAPI.TryGetValueType (value, Config, out JsonValueType valueType)) {
+			if (JsonAPI.TryGetValueType (value, out JsonValueType valueType, Config)) {
 				Write (value, valueType);
 				return;
 			}

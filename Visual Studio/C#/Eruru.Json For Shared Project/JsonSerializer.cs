@@ -18,82 +18,24 @@ namespace Eruru.Json {
 			Stacks.Push (new JsonSerializerStack (instance));
 		}
 
-		public static string Serialize (object instance, JsonConfig config = null) {
-			return BuildText (instance, new StringWriter (), config).ToString ();
-		}
-		public static void Serialize (object instance, string path, JsonConfig config = null) {
-			if (path is null) {
-				throw new ArgumentNullException (nameof (path));
+		void Initialize (bool isArray) {
+			if (Stacks.Peek ().IsInitialized) {
+				return;
 			}
-			BuildText (instance, new StreamWriter (path), config);
-		}
-		public static void Serialize (object instance, Stream stream, JsonConfig config = null) {
-			if (stream is null) {
-				throw new ArgumentNullException (nameof (stream));
+			Stacks.Peek ().IsInitialized = true;
+			if (Stacks.Peek ().Instance is null) {
+				return;
 			}
-			BuildText (instance, new StreamWriter (stream), config);
-		}
-		public static void Serialize (object instance, StreamWriter streamWriter, JsonConfig config = null) {
-			if (streamWriter is null) {
-				throw new ArgumentNullException (nameof (streamWriter));
+			Stacks.Peek ().Type = Stacks.Peek ().Instance.GetType ();
+			if (isArray) {
+				JsonAPI.TryGetArrayType (Stacks.Peek ().Type, out Stacks.Peek ().ArrayType);
+				return;
 			}
-			BuildText (instance, streamWriter, config);
-		}
-		public static string Serialize (object instance, bool compress, JsonConfig config = null) {
-			return BuildText (instance, new StringWriter (), compress, config).ToString ();
-		}
-		public static void Serialize (object instance, string path, bool compress, JsonConfig config = null) {
-			if (path is null) {
-				throw new ArgumentNullException (nameof (path));
-			}
-			BuildText (instance, new StreamWriter (path), compress, config);
-		}
-		public static void Serialize (object instance, Stream stream, bool compress, JsonConfig config = null) {
-			if (stream is null) {
-				throw new ArgumentNullException (nameof (stream));
-			}
-			BuildText (instance, new StreamWriter (stream), compress, config);
-		}
-		public static void Serialize (object instance, StreamWriter streamWriter, bool compress, JsonConfig config = null) {
-			if (streamWriter is null) {
-				throw new ArgumentNullException (nameof (streamWriter));
-			}
-			BuildText (instance, streamWriter, compress, config);
+			JsonAPI.TryGetObjectType (Stacks.Peek ().Type, out Stacks.Peek ().ObjectType);
 		}
 
-		public static JsonValue SerializeValue (object instance, JsonConfig config = null) {
-			return BuildValue (instance, config).BuildValue ();
-		}
-
-		public static JsonArray SerializeArray (object instance, JsonConfig config = null) {
-			return BuildValue (instance, config).BuildArray ();
-		}
-
-		public static JsonObject SerializeObject (object instance, JsonConfig config = null) {
-			return BuildValue (instance, config).BuildObject ();
-		}
-
-		static JsonTextBuilder BuildText (object instance, TextWriter textWriter, JsonConfig config) {
-			if (textWriter is null) {
-				throw new ArgumentNullException (nameof (textWriter));
-			}
-			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonSerializer (instance, config), textWriter)) {
-				builder.BuildValue ();
-				return builder;
-			}
-		}
-		static JsonTextBuilder BuildText (object instance, TextWriter textWriter, bool compress, JsonConfig config) {
-			if (textWriter is null) {
-				throw new ArgumentNullException (nameof (textWriter));
-			}
-			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonSerializer (instance, config), textWriter, compress)) {
-				builder.BuildValue ();
-				return builder;
-			}
-		}
-
-		static JsonValueBuilder BuildValue (object instance, JsonConfig config) {
-			return new JsonValueBuilder (new JsonSerializer (instance, config));
+		object ConverterWrite () {
+			return Stacks.Peek ().Field?.Write (Stacks.Peek ().Instance, Config) ?? Stacks.Peek ().Instance;
 		}
 
 		#region IJsonReader
@@ -114,7 +56,7 @@ namespace Eruru.Json {
 				return;
 			}
 			Stacks.Peek ().Type = Stacks.Peek ().Instance.GetType ();
-			if (JsonAPI.TryGetValueType (Stacks.Peek ().Type, Config, out JsonValueType valueType)) {
+			if (JsonAPI.TryGetValueType (Stacks.Peek ().Type, out JsonValueType valueType, Config)) {
 				value (ConverterWrite (), valueType);
 				return;
 			}
@@ -239,26 +181,6 @@ namespace Eruru.Json {
 		}
 
 		#endregion
-
-		void Initialize (bool isArray) {
-			if (Stacks.Peek ().IsInitialized) {
-				return;
-			}
-			Stacks.Peek ().IsInitialized = true;
-			if (Stacks.Peek ().Instance is null) {
-				return;
-			}
-			Stacks.Peek ().Type = Stacks.Peek ().Instance.GetType ();
-			if (isArray) {
-				JsonAPI.TryGetArrayType (Stacks.Peek ().Type, out Stacks.Peek ().ArrayType);
-				return;
-			}
-			JsonAPI.TryGetObjectType (Stacks.Peek ().Type, out Stacks.Peek ().ObjectType);
-		}
-
-		object ConverterWrite () {
-			return Stacks.Peek ().Field?.Write (Stacks.Peek ().Instance, Config) ?? Stacks.Peek ().Instance;
-		}
 
 	}
 
