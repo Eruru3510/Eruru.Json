@@ -1,39 +1,64 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
 namespace Eruru.Json {
 
-	public class JsonObject : List<JsonKey>, IJsonSerializable, IJsonObject {
+	public class JsonObject : Dictionary<string, JsonKey>, IJsonSerializable, IJsonObject, IEnumerable {
 
 		public JsonObject () {
 
 		}
-		public JsonObject (params JsonKey[] keys) {
-			AddRange (keys);
-		}
-		public JsonObject (IEnumerable<JsonKey> keys) {
-			AddRange (keys);
-		}
 
-		public static JsonObject Parse (string text) {
+		public static JsonObject Parse (string text, JsonConfig config = null) {
 			if (text is null) {
 				throw new ArgumentNullException (nameof (text));
 			}
-			return Build (new StringReader (text));
+			using (JsonTextReader reader = new JsonTextReader (new StringReader (text), config)) {
+				return new JsonValueBuilder (reader, config).BuildObject ();
+			}
+		}
+		public static JsonObject Parse (string text, JsonValue value, JsonConfig config = null) {
+			if (text is null) {
+				throw new ArgumentNullException (nameof (text));
+			}
+			using (JsonTextReader reader = new JsonTextReader (new StringReader (text), config)) {
+				return new JsonValueBuilder (reader, config).BuildObject (value);
+			}
 		}
 
-		public static JsonObject Load (Stream stream) {
-			if (stream is null) {
-				throw new ArgumentNullException (nameof (stream));
-			}
-			return Build (new StreamReader (stream));
-		}
-		public static JsonObject Load (string path) {
+		public static JsonObject Load (string path, JsonConfig config = null) {
 			if (path is null) {
 				throw new ArgumentNullException (nameof (path));
 			}
-			return Build (new StreamReader (path));
+			using (JsonTextReader reader = new JsonTextReader (new StreamReader (path), config)) {
+				return new JsonValueBuilder (reader, config).BuildObject ();
+			}
+		}
+		public static JsonObject Load (TextReader textReader, JsonConfig config = null) {
+			if (textReader is null) {
+				throw new ArgumentNullException (nameof (textReader));
+			}
+			using (JsonTextReader reader = new JsonTextReader (textReader, config)) {
+				return new JsonValueBuilder (reader, config).BuildObject ();
+			}
+		}
+		public static JsonObject Load (string path, JsonValue value, JsonConfig config = null) {
+			if (path is null) {
+				throw new ArgumentNullException (nameof (path));
+			}
+			using (JsonTextReader reader = new JsonTextReader (new StreamReader (path), config)) {
+				return new JsonValueBuilder (reader, config).BuildObject (value);
+			}
+		}
+		public static JsonObject Load (TextReader textReader, JsonValue value, JsonConfig config = null) {
+			if (textReader is null) {
+				throw new ArgumentNullException (nameof (textReader));
+			}
+			using (JsonTextReader reader = new JsonTextReader (textReader, config)) {
+				return new JsonValueBuilder (reader, config).BuildObject (value);
+			}
 		}
 
 		public override string ToString () {
@@ -54,76 +79,50 @@ namespace Eruru.Json {
 			return jsonObject.ToString ();
 		}
 
-		static JsonObject Build (TextReader textReader) {
-			if (textReader is null) {
-				throw new ArgumentNullException (nameof (textReader));
-			}
-			using (JsonTextReader reader = new JsonTextReader (textReader)) {
-				return new JsonValueBuilder (reader).BuildObject ();
-			}
-		}
-
 		#region IJsonSerializable
 
 		public string Serialize (JsonConfig config = null) {
-			return Build (new StringWriter (), config).ToString ();
+			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), new StringWriter (), config)) {
+				builder.BuildObject ();
+				return builder.ToString ();
+			}
 		}
 		public void Serialize (string path, JsonConfig config = null) {
 			if (path is null) {
 				throw new ArgumentNullException (nameof (path));
 			}
-			Build (new StreamWriter (path), config);
-		}
-		public void Serialize (Stream stream, JsonConfig config = null) {
-			if (stream is null) {
-				throw new ArgumentNullException (nameof (stream));
+			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), new StreamWriter (path), config)) {
+				builder.BuildObject ();
 			}
-			Build (new StreamWriter (stream), config);
 		}
-		public void Serialize (StreamWriter streamWriter, JsonConfig config = null) {
-			if (streamWriter is null) {
-				throw new ArgumentNullException (nameof (streamWriter));
-			}
-			Build (streamWriter, config);
-		}
-		public string Serialize (bool compress, JsonConfig config = null) {
-			return Build (new StringWriter (), compress, config).ToString ();
-		}
-		public void Serialize (string path, bool compress, JsonConfig config = null) {
-			if (path is null) {
-				throw new ArgumentNullException (nameof (path));
-			}
-			Build (new StreamWriter (path), compress, config);
-		}
-		public void Serialize (Stream stream, bool compress, JsonConfig config = null) {
-			if (stream is null) {
-				throw new ArgumentNullException (nameof (stream));
-			}
-			Build (new StreamWriter (stream), compress, config);
-		}
-		public void Serialize (StreamWriter streamWriter, bool compress, JsonConfig config = null) {
-			if (streamWriter is null) {
-				throw new ArgumentNullException (nameof (streamWriter));
-			}
-			Build (streamWriter, compress, config);
-		}
-
-		JsonTextBuilder Build (TextWriter textWriter, JsonConfig config) {
+		public void Serialize (TextWriter textWriter, JsonConfig config = null) {
 			if (textWriter is null) {
 				throw new ArgumentNullException (nameof (textWriter));
 			}
 			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), textWriter, config)) {
 				builder.BuildObject ();
-				return builder;
 			}
 		}
-		JsonTextBuilder Build (TextWriter textWriter, bool compress, JsonConfig config) {
+		public string Serialize (bool compress, JsonConfig config = null) {
+			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), new StringWriter (), compress, config)) {
+				builder.BuildObject ();
+				return builder.ToString ();
+			}
+		}
+		public void Serialize (string path, bool compress, JsonConfig config = null) {
+			if (path is null) {
+				throw new ArgumentNullException (nameof (path));
+			}
+			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), new StreamWriter (path), compress, config)) {
+				builder.BuildObject ();
+			}
+		}
+		public void Serialize (TextWriter textWriter, bool compress, JsonConfig config = null) {
 			if (textWriter is null) {
 				throw new ArgumentNullException (nameof (textWriter));
 			}
 			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), textWriter, compress, config)) {
 				builder.BuildObject ();
-				return builder;
 			}
 		}
 
@@ -131,19 +130,11 @@ namespace Eruru.Json {
 
 		#region IJsonObject
 
-		public JsonValue this[string name] {
+		public new JsonValue this[string name] {
 
 			get => GetOrCreate (name);
 
-			set {
-				for (int i = 0; i < Count; i++) {
-					if (JsonAPI.Equals (name, this[i].Name)) {
-						this[i].Value = value;
-						return;
-					}
-				}
-				Add (name, value);
-			}
+			set => GetOrCreate (name).Value = value;
 
 		}
 
@@ -151,30 +142,57 @@ namespace Eruru.Json {
 			if (name is null) {
 				throw new ArgumentNullException (nameof (name));
 			}
-			JsonKey key = new JsonKey (name);
-			base.Add (key);
+			if (TryGetValue (name, out JsonKey key)) {
+				return key;
+			}
+			key = new JsonKey (name);
+			base.Add (name, key);
 			return key;
 		}
 		public JsonKey Add (string name, object value) {
 			if (name is null) {
 				throw new ArgumentNullException (nameof (name));
 			}
-			JsonKey key = new JsonKey (name, value);
-			base.Add (key);
+			if (TryGetValue (name, out JsonKey key)) {
+				key.Value = value;
+				return key;
+			}
+			key = new JsonKey (name, value);
+			base.Add (name, key);
 			return key;
 		}
 
 		public JsonKey Get (string name) {
-			foreach (JsonKey key in this) {
-				if (JsonAPI.Equals (name, key.Name)) {
-					return key;
-				}
+			if (name is null) {
+				throw new ArgumentNullException (nameof (name));
+			}
+			TryGetValue (name, out JsonKey key);
+			return key;
+		}
+
+		public JsonKey Rename (string oldName, string newName) {
+			if (TryGetValue (oldName, out JsonKey key)) {
+				Remove (oldName);
+				base.Add (newName, key);
+				key.Name = newName;
+				return key;
 			}
 			return null;
 		}
 
 		JsonKey GetOrCreate (string name) {
+			if (name is null) {
+				throw new ArgumentNullException (nameof (name));
+			}
 			return Get (name) ?? Add (name);
+		}
+
+		#endregion
+
+		#region IEnumerable
+
+		public new ValueCollection.Enumerator GetEnumerator () {
+			return Values.GetEnumerator ();
 		}
 
 		#endregion

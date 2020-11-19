@@ -9,6 +9,8 @@
 
 		JsonKey Get (string name);
 
+		JsonKey Rename (string oldName, string newName);
+
 	}
 
 }

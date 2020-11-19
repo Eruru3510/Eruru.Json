@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 
 namespace Eruru.Json {
@@ -70,10 +68,6 @@ namespace Eruru.Json {
 				}
 				if (value is JsonValue jsonValue) {
 					Value = jsonValue.Value;
-					return;
-				}
-				if (value is JsonKey key) {
-					Value = key.Value;
 					return;
 				}
 				throw new JsonNotSupportException (value);
@@ -317,39 +311,53 @@ namespace Eruru.Json {
 			_Type = valueType;
 		}
 
-		public static JsonValue Parse (string text) {
+		public static JsonValue Parse (string text, JsonConfig config = null) {
 			if (text is null) {
 				throw new ArgumentNullException (nameof (text));
 			}
-			return Build (new StringReader (text));
+			using (JsonTextReader reader = new JsonTextReader (new StringReader (text), config)) {
+				return new JsonValueBuilder (reader, config).BuildValue ();
+			}
+		}
+		public static JsonValue Parse (string text, JsonValue value, JsonConfig config = null) {
+			if (text is null) {
+				throw new ArgumentNullException (nameof (text));
+			}
+			using (JsonTextReader reader = new JsonTextReader (new StringReader (text), config)) {
+				return new JsonValueBuilder (reader, config).BuildValue (value);
+			}
 		}
 
-		public static JsonValue Load (Stream stream) {
-			if (stream is null) {
-				throw new ArgumentNullException (nameof (stream));
-			}
-			return Build (new StreamReader (stream));
-		}
-		public static JsonValue Load (string path) {
+		public static JsonValue Load (string path, JsonConfig config = null) {
 			if (path is null) {
 				throw new ArgumentNullException (nameof (path));
 			}
-			return Build (new StreamReader (path));
-		}
-
-		public static JsonValue Parse (string text, JsonValue value = null) {
-			if (text is null) {
-				throw new ArgumentNullException (nameof (text));
+			using (JsonTextReader reader = new JsonTextReader (new StreamReader (path), config)) {
+				return new JsonValueBuilder (reader, config).BuildValue ();
 			}
-			return Build (new StringReader (text), value);
 		}
-
-		static JsonValue Build (TextReader textReader, JsonValue value = null) {
+		public static JsonValue Load (TextReader textReader, JsonConfig config = null) {
 			if (textReader is null) {
 				throw new ArgumentNullException (nameof (textReader));
 			}
-			using (JsonTextReader reader = new JsonTextReader (textReader)) {
-				return new JsonValueBuilder (reader).BuildValue (value);
+			using (JsonTextReader reader = new JsonTextReader (textReader, config)) {
+				return new JsonValueBuilder (reader, config).BuildValue ();
+			}
+		}
+		public static JsonValue Load (string path, JsonValue value, JsonConfig config = null) {
+			if (path is null) {
+				throw new ArgumentNullException (nameof (path));
+			}
+			using (JsonTextReader reader = new JsonTextReader (new StreamReader (path), config)) {
+				return new JsonValueBuilder (reader, config).BuildValue (value);
+			}
+		}
+		public static JsonValue Load (TextReader textReader, JsonValue value, JsonConfig config = null) {
+			if (textReader is null) {
+				throw new ArgumentNullException (nameof (textReader));
+			}
+			using (JsonTextReader reader = new JsonTextReader (textReader, config)) {
+				return new JsonValueBuilder (reader, config).BuildValue (value);
 			}
 		}
 
@@ -1392,64 +1400,47 @@ namespace Eruru.Json {
 		#region IJsonSerializable
 
 		public string Serialize (JsonConfig config = null) {
-			return Build (new StringWriter (), config).ToString ();
+			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), new StringWriter (), config)) {
+				builder.BuildValue ();
+				return builder.ToString ();
+			}
 		}
 		public void Serialize (string path, JsonConfig config = null) {
 			if (path is null) {
 				throw new ArgumentNullException (nameof (path));
 			}
-			Build (new StreamWriter (path), config);
-		}
-		public void Serialize (Stream stream, JsonConfig config = null) {
-			if (stream is null) {
-				throw new ArgumentNullException (nameof (stream));
+			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), new StreamWriter (path), config)) {
+				builder.BuildValue ();
 			}
-			Build (new StreamWriter (stream), config);
 		}
-		public void Serialize (StreamWriter streamWriter, JsonConfig config = null) {
-			if (streamWriter is null) {
-				throw new ArgumentNullException (nameof (streamWriter));
-			}
-			Build (streamWriter, config);
-		}
-		public string Serialize (bool compress, JsonConfig config = null) {
-			return Build (new StringWriter (), compress, config).ToString ();
-		}
-		public void Serialize (string path, bool compress, JsonConfig config = null) {
-			if (path is null) {
-				throw new ArgumentNullException (nameof (path));
-			}
-			Build (new StreamWriter (path), compress, config);
-		}
-		public void Serialize (Stream stream, bool compress, JsonConfig config = null) {
-			if (stream is null) {
-				throw new ArgumentNullException (nameof (stream));
-			}
-			Build (new StreamWriter (stream), compress, config);
-		}
-		public void Serialize (StreamWriter streamWriter, bool compress, JsonConfig config = null) {
-			if (streamWriter is null) {
-				throw new ArgumentNullException (nameof (streamWriter));
-			}
-			Build (streamWriter, compress, config);
-		}
-
-		JsonTextBuilder Build (TextWriter textWriter, JsonConfig config) {
+		public void Serialize (TextWriter textWriter, JsonConfig config = null) {
 			if (textWriter is null) {
 				throw new ArgumentNullException (nameof (textWriter));
 			}
 			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), textWriter, config)) {
 				builder.BuildValue ();
-				return builder;
 			}
 		}
-		JsonTextBuilder Build (TextWriter textWriter, bool compress, JsonConfig config) {
+		public string Serialize (bool compress, JsonConfig config = null) {
+			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), new StringWriter (), compress, config)) {
+				builder.BuildValue ();
+				return builder.ToString ();
+			}
+		}
+		public void Serialize (string path, bool compress, JsonConfig config = null) {
+			if (path is null) {
+				throw new ArgumentNullException (nameof (path));
+			}
+			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), new StreamWriter (path), compress, config)) {
+				builder.BuildValue ();
+			}
+		}
+		public void Serialize (TextWriter textWriter, bool compress, JsonConfig config = null) {
 			if (textWriter is null) {
 				throw new ArgumentNullException (nameof (textWriter));
 			}
 			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), textWriter, compress, config)) {
 				builder.BuildValue ();
-				return builder;
 			}
 		}
 
@@ -1607,6 +1598,16 @@ namespace Eruru.Json {
 				throw new ArgumentNullException (nameof (name));
 			}
 			return GetObject ().Add (name);
+		}
+
+		public JsonKey Rename (string oldName, string newName) {
+			if (oldName is null) {
+				throw new ArgumentNullException (nameof (oldName));
+			}
+			if (newName is null) {
+				throw new ArgumentNullException (nameof (newName));
+			}
+			return GetObject ().Rename (oldName, newName);
 		}
 
 		#endregion

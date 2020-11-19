@@ -122,7 +122,7 @@
     }
 };
 //参数二为是否压缩Json字符串
-string json = JsonSerializer.Serialize (account, false);
+string json = JsonConvert.Serialize (account, false);
 //{
 //  &quot;Email&quot;: &quot;james@example.com&quot;,
 //  &quot;Active&quot;: true,
@@ -148,10 +148,10 @@ Console.WriteLine (json);
 };
 string path = @&quot;d:\movie.json&quot;;
 //序列化对象为Json字符串，然后写到文本文件
-File.WriteAllText (path, JsonSerializer.Serialize (movie));
+File.WriteAllText (path, JsonConvert.Serialize (movie));
 //以流的方式序列化对象到Json文本文件
 using (StreamWriter file = File.CreateText (path)) {
-    JsonSerializer.Serialize (movie, file);
+    JsonConvert.Serialize (movie, file);
 }
 </code></pre>
 <h2 id="json_2">反序列化Json字符串到对象</h2>
@@ -173,7 +173,7 @@ using (StreamWriter file = File.CreateText (path)) {
         'Admin'
     ]
 }&quot;;
-Account account = JsonDeserializer.Deserialize&lt;Account&gt; (json);
+Account account = JsonConvert.Deserialize&lt;Account&gt; (json);
 Console.WriteLine (account.Email);
 //james@example.com
 </code></pre>
@@ -187,10 +187,10 @@ Console.WriteLine (account.Email);
 </code></pre>
 <pre><code class="language-C#">string path = @&quot;d:\movie.json&quot;;
 //读入Json字符串，然后反序列化Json字符串到对象
-Movie movie = JsonDeserializer.Deserialize&lt;Movie&gt; (File.ReadAllText (path));
+Movie movie = JsonConvert.Deserialize&lt;Movie&gt; (File.ReadAllText (path));
 //以流的方式从Json文本文件反序列化到对象
 using (StreamReader file = File.OpenText (path)) {
-    Movie movie2 = JsonDeserializer.Deserialize&lt;Movie&gt; (file);
+    Movie movie2 = JsonConvert.Deserialize&lt;Movie&gt; (file);
 }
 </code></pre>
 <h2 id="jsonobjectparsejson">使用JsonObject.Parse解析Json字符串</h2>
@@ -225,7 +225,7 @@ Console.WriteLine (jsonObject.Serialize (false));
     Name = &quot;Nigal Newborn&quot;,
     Age = 1
 };
-string jsonIncludeNullValues = JsonSerializer.Serialize (person, false);
+string jsonIncludeNullValues = JsonConvert.Serialize (person, false);
 Console.WriteLine (jsonIncludeNullValues);
 //{
 //  &quot;Name&quot;: &quot;Nigal Newborn&quot;,
@@ -233,7 +233,7 @@ Console.WriteLine (jsonIncludeNullValues);
 //  &quot;Partner&quot;: null,
 //  &quot;Salary&quot;: null
 //}
-string jsonIgnoreNullValues = JsonSerializer.Serialize (person, false, new JsonConfig {
+string jsonIgnoreNullValues = JsonConvert.Serialize (person, false, new JsonConfig {
     IgnoreNull = true
 });
 Console.WriteLine (jsonIgnoreNullValues);

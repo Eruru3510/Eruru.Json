@@ -4,6 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Eruru.Json</RootNamespace>
     <AssemblyName>Eruru.Json For .NET Standard 2.0</AssemblyName>
+    <PackageId>Eruru.Json</PackageId>
+    <Authors>Eruru</Authors>
   </PropertyGroup>
 
   <Import Project="..\Eruru.Json For Shared Project\Eruru.Json For Shared Project.projitems" Label="Shared" />

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Eruru.Json {
+﻿namespace Eruru.Json {
 
 	public enum JsonTextWriterStage {
 

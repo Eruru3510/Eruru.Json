@@ -25,8 +25,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)JsonException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonField.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonIgnoreField.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)JsonNotSupportException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonKey.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonNotSupportException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Jsonkeyword.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonObjectType.cs" />
