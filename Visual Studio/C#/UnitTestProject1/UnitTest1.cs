@@ -79,7 +79,7 @@ namespace UnitTestProject1 {
 				Name = "Bad Boys",
 				Year = 1995
 			};
-			string path = @"d:\movie.json";
+			string path = @"movie.json";
 			File.WriteAllText (path, JsonConvert.Serialize (movie));
 			using (StreamWriter file = File.CreateText (path)) {
 				JsonConvert.Serialize (movie, file);
@@ -108,7 +108,7 @@ namespace UnitTestProject1 {
 
 		[TestMethod]
 		public void DeserializeJsonFromAFile () {
-			string path = @"d:\movie.json";
+			string path = @"movie.json";
 			Movie movie = JsonConvert.Deserialize<Movie> (File.ReadAllText (path));
 			using (StreamReader file = File.OpenText (path)) {
 				Movie movie2 = JsonConvert.Deserialize<Movie> (file);

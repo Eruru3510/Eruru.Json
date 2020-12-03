@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
 namespace Eruru.Json {
 
-	public class JsonObject : Dictionary<string, JsonKey>, IJsonSerializable, IJsonObject, IEnumerable {
+	public class JsonObject : Dictionary<string, JsonKey>, IJsonSerializable, IJsonObject, IEnumerable<JsonKey> {
 
 		public JsonObject () {
 
@@ -189,9 +188,9 @@ namespace Eruru.Json {
 
 		#endregion
 
-		#region IEnumerable
+		#region IEnumerable<JsonKey>
 
-		public new ValueCollection.Enumerator GetEnumerator () {
+		public new IEnumerator<JsonKey> GetEnumerator () {
 			return Values.GetEnumerator ();
 		}
 

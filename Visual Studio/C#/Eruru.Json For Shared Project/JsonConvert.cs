@@ -21,7 +21,7 @@ namespace Eruru.Json {
 		/// <param name="instance">对象实例</param>
 		/// <param name="config">配置实例（为空时使用JsonConfig.Default）</param>
 		/// <returns>JsonArray</returns>
-		public static JsonValue SerializeArray (object instance, JsonConfig config = null) {
+		public static JsonArray SerializeArray (object instance, JsonConfig config = null) {
 			return new JsonValueBuilder (new JsonSerializer (instance, config), config).BuildArray ();
 		}
 
@@ -31,7 +31,7 @@ namespace Eruru.Json {
 		/// <param name="instance">对象实例</param>
 		/// <param name="config">配置实例（为空时使用JsonConfig.Default）</param>
 		/// <returns>Json字符串</returns>
-		public static JsonValue SerializeObject (object instance, JsonConfig config = null) {
+		public static JsonObject SerializeObject (object instance, JsonConfig config = null) {
 			return new JsonValueBuilder (new JsonSerializer (instance, config), config).BuildObject ();
 		}
 
@@ -125,6 +125,48 @@ namespace Eruru.Json {
 		}
 
 		/// <summary>
+		/// 将JsonValue反序列化为对象
+		/// </summary>
+		/// <typeparam name="T">对象类型</typeparam>
+		/// <param name="value">JsonValue</param>
+		/// <param name="config">配置实例（为空时使用JsonConfig.Default）</param>
+		/// <returns>对象实例</returns>
+		public static T Deserialize<T> (JsonValue value, JsonConfig config = null) {
+			if (value is null) {
+				throw new ArgumentNullException (nameof (value));
+			}
+			return new JsonDeserializer (new JsonValueReader (value), config).BuildValue<T> ();
+		}
+
+		/// <summary>
+		/// 将JsonArray反序列化为对象
+		/// </summary>
+		/// <typeparam name="T">对象类型</typeparam>
+		/// <param name="array">JsonArray</param>
+		/// <param name="config">配置实例（为空时使用JsonConfig.Default）</param>
+		/// <returns>对象实例</returns>
+		public static T Deserialize<T> (JsonArray array, JsonConfig config = null) {
+			if (array is null) {
+				throw new ArgumentNullException (nameof (array));
+			}
+			return new JsonDeserializer (new JsonValueReader (array), config).BuildArray<T> ();
+		}
+
+		/// <summary>
+		/// 将JsonObject反序列化为对象
+		/// </summary>
+		/// <typeparam name="T">对象类型</typeparam>
+		/// <param name="jsonObject">JsonObject</param>
+		/// <param name="config">配置实例（为空时使用JsonConfig.Default）</param>
+		/// <returns>对象实例</returns>
+		public static T Deserialize<T> (JsonObject jsonObject, JsonConfig config = null) {
+			if (jsonObject is null) {
+				throw new ArgumentNullException (nameof (jsonObject));
+			}
+			return new JsonDeserializer (new JsonValueReader (jsonObject), config).BuildObject<T> ();
+		}
+
+		/// <summary>
 		/// 将Json字符串反序列化为对象
 		/// </summary>
 		/// <typeparam name="T">对象类型</typeparam>
@@ -170,6 +212,51 @@ namespace Eruru.Json {
 			using (JsonTextReader reader = new JsonTextReader (new StreamReader (path), config)) {
 				return new JsonDeserializer (reader, config).BuildValue<T> ();
 			}
+		}
+
+		/// <summary>
+		/// 将JsonValue反序列化为对象
+		/// </summary>
+		/// <typeparam name="T">对象类型</typeparam>
+		/// <param name="value">JsonValue</param>
+		/// <param name="instance">复用对象实例</param>
+		/// <param name="config">配置实例（为空时使用JsonConfig.Default）</param>
+		/// <returns>对象实例</returns>
+		public static T Deserialize<T> (JsonValue value, T instance, JsonConfig config = null) {
+			if (value is null) {
+				throw new ArgumentNullException (nameof (value));
+			}
+			return new JsonDeserializer (new JsonValueReader (value), config).BuildValue<T> (instance);
+		}
+
+		/// <summary>
+		/// 将JsonArray反序列化为对象
+		/// </summary>
+		/// <typeparam name="T">对象类型</typeparam>
+		/// <param name="array">JsonArray</param>
+		/// <param name="instance">复用对象实例</param>
+		/// <param name="config">配置实例（为空时使用JsonConfig.Default）</param>
+		/// <returns>对象实例</returns>
+		public static T Deserialize<T> (JsonArray array, T instance, JsonConfig config = null) {
+			if (array is null) {
+				throw new ArgumentNullException (nameof (array));
+			}
+			return new JsonDeserializer (new JsonValueReader (array), config).BuildArray<T> (instance);
+		}
+
+		/// <summary>
+		/// 将JsonObject反序列化为对象
+		/// </summary>
+		/// <typeparam name="T">对象类型</typeparam>
+		/// <param name="jsonObject">JsonObject</param>
+		/// <param name="instance">复用对象实例</param>
+		/// <param name="config">配置实例（为空时使用JsonConfig.Default）</param>
+		/// <returns>对象实例</returns>
+		public static T Deserialize<T> (JsonObject jsonObject, T instance, JsonConfig config = null) {
+			if (jsonObject is null) {
+				throw new ArgumentNullException (nameof (jsonObject));
+			}
+			return new JsonDeserializer (new JsonValueReader (jsonObject), config).BuildObject<T> (instance);
 		}
 
 		/// <summary>

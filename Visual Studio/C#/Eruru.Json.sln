@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Eruru.Json For Shared Project", "Eruru.Json For Shared Project\Eruru.Json For Shared Project.shproj", "{0D2015D5-1A78-4E35-BBA3-5095D07FDE1C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eruru.Json For .NET Framework 2.0", "Eruru.Json For .NET Framework 2.0\Eruru.Json For .NET Framework 2.0.csproj", "{B0B9C829-C15A-4B29-850A-FE155C8F65AC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eruru.Json_For_.NET_Framework_2.0", "Eruru.Json For .NET Framework 2.0\Eruru.Json_For_.NET_Framework_2.0.csproj", "{B0B9C829-C15A-4B29-850A-FE155C8F65AC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestProject1", "UnitTestProject1\UnitTestProject1.csproj", "{58E29772-832B-446B-9CF5-C2DB05D9569F}"
 EndProject

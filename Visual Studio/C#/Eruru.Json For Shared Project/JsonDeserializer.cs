@@ -129,7 +129,7 @@ namespace Eruru.Json {
 						throw new JsonNotSupportException (arrayType);
 				}
 			}
-			throw new JsonNotSupportException (type);
+			throw new JsonException ($"不支持将数组转为{type}");
 		}
 
 		object BuildObject (Type type, object instance = null) {
@@ -174,7 +174,7 @@ namespace Eruru.Json {
 						throw new JsonNotSupportException (objectType);
 				}
 			}
-			throw new JsonNotSupportException (type);
+			throw new JsonException ($"不支持将对象转为{type}");
 		}
 
 		object ConverterRead (Type type, object instance, JsonField field) {
