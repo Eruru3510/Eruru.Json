@@ -157,16 +157,25 @@ namespace Eruru.Json {
 							}
 							return false;
 						}, () => {
+							object value;
 							switch (memberInfo.MemberType) {
 								case MemberTypes.Field:
-									fieldInfo.SetValue (instance, ConverterRead (fieldInfo.FieldType, fieldInfo.GetValue (instance), field));
+									value = ConverterRead (fieldInfo.FieldType, fieldInfo.GetValue (instance), field);
 									break;
 								case MemberTypes.Property:
-									propertyInfo.SetValue (instance, ConverterRead (propertyInfo.PropertyType, propertyInfo.GetValue (instance, null), field), null);
+									value = ConverterRead (propertyInfo.PropertyType, propertyInfo.GetValue (instance, null), field);
 									break;
 								default:
 									throw new JsonNotSupportException (memberInfo.MemberType);
 							}
+							if (!JsonAPI.CanSerialize (Config, value)) {
+								return;
+							}
+							if (memberInfo.MemberType == MemberTypes.Property) {
+								propertyInfo.SetValue (instance, value, null);
+								return;
+							}
+							fieldInfo.SetValue (instance, value);
 						});
 						return instance;
 					}

@@ -207,6 +207,24 @@ namespace Eruru.Json {
 			}
 		}
 
+		public static bool CanSerialize (JsonConfig config, object instance) {
+			if (config.IgnoreDefault) {
+				if (instance is null) {
+					return false;
+				}
+				if (Equals (instance, Activator.CreateInstance (instance.GetType ()))) {
+					return false;
+				}
+				return true;
+			}
+			if (config.IgnoreNull) {
+				if (instance is null) {
+					return false;
+				}
+			}
+			return true;
+		}
+
 		public static T GetCustomAttribute<T> (MemberInfo memberInfo) where T : Attribute {
 			if (memberInfo is null) {
 				throw new ArgumentNullException (nameof (memberInfo));

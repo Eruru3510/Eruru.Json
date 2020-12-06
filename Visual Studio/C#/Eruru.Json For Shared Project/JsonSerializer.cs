@@ -119,13 +119,9 @@ namespace Eruru.Json {
 				case JsonArrayType.GenericList:
 				case JsonArrayType.GenericIList:
 				case JsonArrayType.GenericObservableCollection: {
-					Type elementType = Stacks.Peek ().Type.GetGenericArguments ()[0];
-					int count = (int)Stacks.Peek ().Type.GetProperty (nameof (IList.Count)).GetValue (Stacks.Peek ().Instance, null);
-					MethodInfo getItemMethod = Stacks.Peek ().Type.GetMethod ("get_Item");
-					object[] getItemParameters = new object[1];
-					for (int i = 0; i < count; i++) {
-						getItemParameters[0] = i;
-						Stacks.Push (new JsonSerializerStack (getItemMethod.Invoke (Stacks.Peek ().Instance, getItemParameters)));
+					IList list = (IList)Stacks.Peek ().Instance;
+					for (int i = 0; i < list.Count; i++) {
+						Stacks.Push (new JsonSerializerStack (list[i]));
 						readValue (i);
 						Stacks.Pop ();
 					}
@@ -147,14 +143,13 @@ namespace Eruru.Json {
 			switch (Stacks.Peek ().ObjectType) {
 				case JsonObjectType.Class:
 					JsonAPI.ForEachMembers (Stacks.Peek ().Type, (memberInfo, fieldInfo, propertyInfo, field) => {
-						bool isRead = false;
+						bool isReaded = false;
 						object instance = null;
 						object Read () {
-							if (isRead) {
+							if (isReaded) {
 								return instance;
-							} else {
-								isRead = true;
 							}
+							isReaded = true;
 							switch (memberInfo.MemberType) {
 								case MemberTypes.Field:
 									return instance = fieldInfo.GetValue (Stacks.Peek ().Instance);
@@ -164,7 +159,7 @@ namespace Eruru.Json {
 									throw new JsonNotSupportException (memberInfo.MemberType);
 							}
 						}
-						if (Config.IgnoreNull && Read () is null) {
+						if (!JsonAPI.CanSerialize (Config, Read ())) {
 							return;
 						}
 						if (key (field?.Name ?? memberInfo.Name)) {

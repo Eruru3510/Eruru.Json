@@ -7,6 +7,7 @@
 		public bool Compress { get; set; } = true;
 		public bool IgnoreCase { get; set; } = true;
 		public bool IgnoreNull { get; set; } = false;
+		public bool IgnoreDefault { get; set; } = false;
 		public bool StringEnum { get; set; } = true;
 		public bool UTCTime { get; set; } = true;
 		public string IndentString { get; set; } = "\t";
