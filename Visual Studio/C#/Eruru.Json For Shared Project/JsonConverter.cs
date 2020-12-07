@@ -19,30 +19,30 @@ namespace Eruru.Json {
 			Type = type ?? throw new ArgumentNullException (nameof (type));
 			Type interfaceType = Type.GetInterface (typeof (IJsonConverter<object, object>).Name);
 			if (interfaceType is null) {
-				throw new JsonException ($"Need to inherit the {typeof (IJsonConverter<object, object>)} interface");
+				throw new JsonException ($"{type}需要实现{typeof (IJsonConverter<object, object>)}接口");
 			}
 			Type[] types = interfaceType.GetGenericArguments ();
 			BeforeType = types[0];
 			AfterType = types[1];
 			ReadMethod = interfaceType.GetMethod (nameof (IJsonConverter<object, object>.Read), new Type[] { BeforeType });
 			WriteMethod = interfaceType.GetMethod (nameof (IJsonConverter<object, object>.Write), new Type[] { AfterType });
-			Instance = JsonAPI.CreateInstance (Type);
+			Instance = JsonApi.CreateInstance (Type);
 		}
 
 		public object Read (object value, JsonConfig config) {
 			if (config is null) {
 				throw new ArgumentNullException (nameof (config));
 			}
-			ReadParameters[0] = JsonAPI.ChangeType (value, BeforeType, config);
-			return JsonAPI.ChangeType (ReadMethod.Invoke (Instance, ReadParameters), ReadMethod.ReturnType, config);
+			ReadParameters[0] = JsonApi.ChangeType (value, BeforeType, config);
+			return JsonApi.ChangeType (ReadMethod.Invoke (Instance, ReadParameters), ReadMethod.ReturnType, config);
 		}
 
 		public object Write (object value, JsonConfig config) {
 			if (config is null) {
 				throw new ArgumentNullException (nameof (config));
 			}
-			WriteParameters[0] = JsonAPI.ChangeType (value, AfterType, config);
-			return JsonAPI.ChangeType (WriteMethod.Invoke (Instance, WriteParameters), WriteMethod.ReturnType, config);
+			WriteParameters[0] = JsonApi.ChangeType (value, AfterType, config);
+			return JsonApi.ChangeType (WriteMethod.Invoke (Instance, WriteParameters), WriteMethod.ReturnType, config);
 		}
 
 		public override int GetHashCode () {

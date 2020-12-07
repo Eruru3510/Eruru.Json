@@ -30,7 +30,7 @@ namespace Eruru.Json {
 		object BuildValue (Type type, object instance = null) {
 			object instanceValue = null;
 			Reader.ReadValue (
-				(value, valueType) => instanceValue = JsonAPI.ChangeType (value, type, Config),
+				(value, valueType) => instanceValue = JsonApi.ChangeType (value, type, Config),
 				() => instanceValue = BuildArray (type, instance),
 				() => instanceValue = BuildObject (type, instance)
 			);
@@ -41,7 +41,7 @@ namespace Eruru.Json {
 			if (type is null) {
 				throw new ArgumentNullException (nameof (type));
 			}
-			if (JsonAPI.TryGetArrayType (type, out JsonArrayType arrayType)) {
+			if (JsonApi.TryGetArrayType (type, out JsonArrayType arrayType)) {
 				switch (arrayType) {
 					case JsonArrayType.Array: {
 						JsonArray jsonArray = new JsonValueBuilder (Reader).BuildArray ();
@@ -104,13 +104,13 @@ namespace Eruru.Json {
 							if (type.IsInterface) {
 								switch (arrayType) {
 									case JsonArrayType.GenericIList:
-										instance = JsonAPI.CreateInstance (typeof (List<>).MakeGenericType (elementType));
+										instance = JsonApi.CreateInstance (typeof (List<>).MakeGenericType (elementType));
 										break;
 									default:
 										throw new JsonNotSupportException (arrayType);
 								}
 							} else {
-								instance = JsonAPI.CreateInstance (type);
+								instance = JsonApi.CreateInstance (type);
 							}
 						}
 						IList list = (IList)instance;
@@ -136,20 +136,20 @@ namespace Eruru.Json {
 			if (type is null) {
 				throw new ArgumentNullException (nameof (type));
 			}
-			if (JsonAPI.TryGetObjectType (type, out JsonObjectType objectType)) {
+			if (JsonApi.TryGetObjectType (type, out JsonObjectType objectType)) {
 				switch (objectType) {
 					case JsonObjectType.Class: {
 						if (instance is null) {
-							instance = JsonAPI.CreateInstance (type);
+							instance = JsonApi.CreateInstance (type);
 						}
 						MemberInfo memberInfo = null;
 						FieldInfo fieldInfo = null;
 						PropertyInfo propertyInfo = null;
 						JsonField field = null;
 						Reader.ReadObject (name => {
-							foreach (MemberInfo current in JsonAPI.GetMembers (type)) {
-								if (JsonAPI.CanSerialize (current, out fieldInfo, out propertyInfo, out field)) {
-									if (JsonAPI.Equals (name, field?.Name ?? current.Name, Config)) {
+							foreach (MemberInfo current in JsonApi.GetMembers (type)) {
+								if (JsonApi.CanSerialize (current, out fieldInfo, out propertyInfo, out field)) {
+									if (JsonApi.Equals (name, field?.Name ?? current.Name, Config)) {
 										memberInfo = current;
 										return true;
 									}
@@ -168,7 +168,7 @@ namespace Eruru.Json {
 								default:
 									throw new JsonNotSupportException (memberInfo.MemberType);
 							}
-							if (!JsonAPI.CanSerialize (Config, value)) {
+							if (!JsonApi.CanSerialize (Config, value)) {
 								return;
 							}
 							if (memberInfo.MemberType == MemberTypes.Property) {
@@ -191,7 +191,7 @@ namespace Eruru.Json {
 				throw new ArgumentNullException (nameof (type));
 			}
 			if (field?.HasConverter ?? false) {
-				return JsonAPI.ChangeType (field.Read (BuildValue (field.ConverterReadType, instance), Config), type, Config);
+				return JsonApi.ChangeType (field.Read (BuildValue (field.ConverterReadType, instance), Config), type, Config);
 			}
 			return BuildValue (type, instance);
 		}

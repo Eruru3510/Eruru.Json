@@ -27,7 +27,7 @@ namespace Eruru.Json {
 		}
 
 		public void Write (object value) {
-			if (JsonAPI.TryGetValueType (value, out JsonValueType valueType, Config)) {
+			if (JsonApi.TryGetValueType (value, out JsonValueType valueType, Config)) {
 				Write (value, valueType);
 				return;
 			}
@@ -53,7 +53,7 @@ namespace Eruru.Json {
 		public void Write (object value, JsonValueType valueType) {
 			CheckEnd ();
 			Head ();
-			if (JsonAPI.HasFlag (Stacks.Peek ().Stage, JsonTextWriterStage.Key)) {
+			if (JsonApi.HasFlag (Stacks.Peek ().Stage, JsonTextWriterStage.Key)) {
 				valueType = JsonValueType.String;
 			}
 			switch (valueType) {
@@ -73,7 +73,7 @@ namespace Eruru.Json {
 					TextWriter.Write ((bool)value ? JsonKeyword.True : JsonKeyword.False);
 					break;
 				case JsonValueType.String:
-					WriteString (JsonAPI.Unescape (value.ToString ()));
+					WriteString (JsonApi.Unescape (value.ToString ()));
 					break;
 				case JsonValueType.DateTime:
 					DateTime dateTime = (DateTime)value;

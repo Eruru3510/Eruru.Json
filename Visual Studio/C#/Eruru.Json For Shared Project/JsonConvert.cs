@@ -55,8 +55,8 @@ namespace Eruru.Json {
 		/// <param name="path">文件保存路径</param>
 		/// <param name="config">配置实例（为空时使用JsonConfig.Default）</param>
 		public static void Serialize (object instance, string path, JsonConfig config = null) {
-			if (path is null) {
-				throw new ArgumentNullException (nameof (path));
+			if (JsonApi.IsNullOrWhiteSpace (path)) {
+				throw new ArgumentException ($"“{nameof (path)}”不能为 Null 或空白", nameof (path));
 			}
 			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonSerializer (instance, config), new StreamWriter (path), config)) {
 				builder.BuildValue ();
@@ -100,8 +100,8 @@ namespace Eruru.Json {
 		/// <param name="compress">是否压缩（缩进）Json字符串</param>
 		/// <param name="config">配置实例（为空时使用JsonConfig.Default）</param>
 		public static void Serialize (object instance, string path, bool compress, JsonConfig config = null) {
-			if (path is null) {
-				throw new ArgumentNullException (nameof (path));
+			if (JsonApi.IsNullOrWhiteSpace (path)) {
+				throw new ArgumentException ($"“{nameof (path)}”不能为 Null 或空白", nameof (path));
 			}
 			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonSerializer (instance, config), new StreamWriter (path), compress, config)) {
 				builder.BuildValue ();
@@ -174,8 +174,8 @@ namespace Eruru.Json {
 		/// <param name="config">配置实例（为空时使用JsonConfig.Default）</param>
 		/// <returns>对象实例</returns>
 		public static T Deserialize<T> (string text, JsonConfig config = null) {
-			if (text is null) {
-				throw new ArgumentNullException (nameof (text));
+			if (JsonApi.IsNullOrWhiteSpace (text)) {
+				throw new ArgumentException ($"“{nameof (text)}”不能为 Null 或空白", nameof (text));
 			}
 			using (JsonTextReader reader = new JsonTextReader (new StringReader (text), config)) {
 				return new JsonDeserializer (reader, config).BuildValue<T> ();
@@ -206,8 +206,8 @@ namespace Eruru.Json {
 		/// <param name="config">配置实例（为空时使用JsonConfig.Default）</param>
 		/// <returns>对象实例</returns>
 		public static T DeserializeFile<T> (string path, JsonConfig config = null) {
-			if (path is null) {
-				throw new ArgumentNullException (nameof (path));
+			if (JsonApi.IsNullOrWhiteSpace (path)) {
+				throw new ArgumentException ($"“{nameof (path)}”不能为 Null 或空白", nameof (path));
 			}
 			using (JsonTextReader reader = new JsonTextReader (new StreamReader (path), config)) {
 				return new JsonDeserializer (reader, config).BuildValue<T> ();
@@ -268,8 +268,8 @@ namespace Eruru.Json {
 		/// <param name="config">配置实例（为空时使用JsonConfig.Default）</param>
 		/// <returns>对象实例</returns>
 		public static T Deserialize<T> (string text, T instance, JsonConfig config = null) {
-			if (text is null) {
-				throw new ArgumentNullException (nameof (text));
+			if (JsonApi.IsNullOrWhiteSpace (text)) {
+				throw new ArgumentException ($"“{nameof (text)}”不能为 Null 或空白", nameof (text));
 			}
 			using (JsonTextReader reader = new JsonTextReader (new StringReader (text), config)) {
 				return new JsonDeserializer (reader, config).BuildValue<T> (instance);
@@ -302,8 +302,8 @@ namespace Eruru.Json {
 		/// <param name="config">配置实例（为空时使用JsonConfig.Default）</param>
 		/// <returns>对象实例</returns>
 		public static T DeserializeFile<T> (string path, T instance, JsonConfig config = null) {
-			if (path is null) {
-				throw new ArgumentNullException (nameof (path));
+			if (JsonApi.IsNullOrWhiteSpace (path)) {
+				throw new ArgumentException ($"“{nameof (path)}”不能为 Null 或空白", nameof (path));
 			}
 			using (JsonTextReader reader = new JsonTextReader (new StreamReader (path), config)) {
 				return new JsonDeserializer (reader, config).BuildValue<T> (instance);

@@ -9,11 +9,11 @@ namespace Eruru.Json {
 
 	public class JsonTextReader : IDisposable, IEnumerable<JsonToken>, IEnumerator<JsonToken>, IJsonReader {
 
+		public Queue<int> Buffer { get; } = new Queue<int> ();
 		public int BufferLength { get; set; } = 500;
 
 		readonly TextReader TextReader;
 		readonly JsonConfig Config;
-		readonly Queue<int> Buffer = new Queue<int> ();
 		int Index;
 
 		public JsonTextReader (TextReader textReader, JsonConfig config = null) {
@@ -106,13 +106,6 @@ namespace Eruru.Json {
 			return stringBuilder.ToString ();
 		}
 
-		string Expectation (params object[] values) {
-			if (values is null) {
-				throw new ArgumentNullException (nameof (values));
-			}
-			return $"期望是{string.Join ("或", Array.ConvertAll (values, value => value.ToString ()))}";
-		}
-
 		#region IDisposable
 
 		public void Dispose () {
@@ -181,6 +174,9 @@ namespace Eruru.Json {
 						break;
 					case JsonKeyword.RightBrace:
 						token.Type = JsonTokenType.RightBrace;
+						break;
+					case JsonKeyword.Dot:
+						token.Type = JsonTokenType.Dot;
 						break;
 				}
 				if (token.Type != JsonTokenType.Unknown) {
@@ -271,19 +267,19 @@ namespace Eruru.Json {
 					readObject ();
 					return;
 			}
-			if (JsonAPI.HasFlag (Current.Type, JsonTokenType.Value)) {
+			if (JsonApi.HasFlag (Current.Type, JsonTokenType.Value)) {
 				if (Current.Type == JsonTokenType.String && DateTime.TryParse (Current.Value.ToString (), out DateTime dateTime)) {
 					value?.Invoke (dateTime, JsonValueType.DateTime);
 					return;
 				}
-				value?.Invoke (Current.Value, JsonAPI.TokenTypeToValueType (Current.Type));
+				value?.Invoke (Current.Value, JsonApi.TokenTypeToValueType (Current.Type));
 				return;
 			}
 			throw new JsonTextReaderException (
-				Expectation (JsonTokenType.Null, JsonTokenType.Long, JsonTokenType.Decimal, JsonTokenType.Bool, JsonTokenType.String,
-				JsonTokenType.LeftBracket, JsonTokenType.LeftBrace),
 				Buffer,
-				Current
+				Current,
+				JsonTokenType.Null, JsonTokenType.Long, JsonTokenType.Decimal, JsonTokenType.Bool, JsonTokenType.String,
+				JsonTokenType.LeftBracket, JsonTokenType.LeftBrace
 			);
 		}
 
@@ -313,7 +309,7 @@ namespace Eruru.Json {
 			}
 			JsonTokenType start = isArray ? JsonTokenType.LeftBracket : JsonTokenType.LeftBrace;
 			if (Current.Type != start) {
-				throw new JsonTextReaderException (Expectation (start), Buffer, Current);
+				throw new JsonTextReaderException (Buffer, Current, start);
 			}
 			JsonTokenType end = isArray ? JsonTokenType.RightBracket : JsonTokenType.RightBrace;
 			bool isFirst = true;
@@ -325,19 +321,19 @@ namespace Eruru.Json {
 					isFirst = false;
 				} else {
 					if (Current.Type != JsonTokenType.Comma) {
-						throw new JsonTextReaderException (Expectation (JsonTokenType.Comma), Buffer, Current);
+						throw new JsonTextReaderException (Buffer, Current, JsonTokenType.Comma);
 					}
 					MoveNext ();
 				}
 				bool needReadValue = true;
 				if (!isArray) {
 					if (Current.Type != JsonTokenType.String) {
-						throw new JsonTextReaderException (Expectation (JsonTokenType.String), Buffer, Current);
+						throw new JsonTextReaderException (Buffer, Current, JsonTokenType.String);
 					}
 					needReadValue = key ((string)Current.Value);
 					MoveNext ();
 					if (Current.Type != JsonTokenType.Semicolon) {
-						throw new JsonTextReaderException (Expectation (JsonTokenType.Semicolon), Buffer, Current);
+						throw new JsonTextReaderException (Buffer, Current, JsonTokenType.Semicolon);
 					}
 					MoveNext ();
 				}
@@ -347,7 +343,7 @@ namespace Eruru.Json {
 				}
 				ConsumptionValue ();
 			}
-			throw new JsonTextReaderException (Expectation (end), Buffer, Current);
+			throw new JsonTextReaderException (Buffer, Current, end);
 		}
 
 		void ConsumptionValue () {

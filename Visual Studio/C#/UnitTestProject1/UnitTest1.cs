@@ -158,7 +158,7 @@ namespace UnitTestProject1 {
 			//	"Salary": null
 			//}
 			string jsonIgnoreNullValues = JsonConvert.Serialize (person, false, new JsonConfig {
-				IgnoreNull = true
+				IgnoreNullValue = true
 			});
 			Console.WriteLine (jsonIgnoreNullValues);
 			//{
@@ -177,6 +177,78 @@ namespace UnitTestProject1 {
 				$"\t\"Name\": \"Nigal Newborn\",{Environment.NewLine}" +
 				$"\t\"Age\": 1{Environment.NewLine}" +
 			"}", jsonIgnoreNullValues);
+		}
+
+		[TestMethod]
+		public void DefaultValueHandling () {
+			Person person = new Person ();
+			string jsonIncludeDefaultValues = JsonConvert.Serialize (person, false);
+			Console.WriteLine (jsonIncludeDefaultValues);
+			//{
+			//	"Name": null,
+			//	"Age": 0,
+			//	"Partner": null,
+			//	"Salary": null
+			//}
+			string jsonIgnoreDefaultValues = JsonConvert.Serialize (person, false, new JsonConfig {
+				IgnoreDefaultValue = true
+			});
+			Console.WriteLine (jsonIgnoreDefaultValues);
+			//{}
+			Assert.AreEqual ($"{{{Environment.NewLine}" +
+				$"\t\"Name\": null,{Environment.NewLine}" +
+				$"\t\"Age\": 0,{Environment.NewLine}" +
+				$"\t\"Partner\": null,{Environment.NewLine}" +
+				$"\t\"Salary\": null{Environment.NewLine}" +
+			"}", jsonIncludeDefaultValues);
+			Assert.AreEqual ("{}", jsonIgnoreDefaultValues);
+		}
+
+		[TestMethod]
+		public void QueryingJsonWithJsonPath () {
+			JsonObject o = JsonObject.Parse (
+			@"{
+				'Stores': [
+					'Lambton Quay',
+					'Willis Street'
+				],
+				'Manufacturers': [
+					{
+						'Name': 'Acme Co',
+						'Products': [
+							{
+								'Name': 'Anvil',
+								'Price': 50
+							}
+						]
+					},
+					{
+						'Name': 'Contoso',
+						'Products': [
+							{
+								'Name': 'Elbow Grease',
+								'Price': 99.95
+							},
+							{
+								'Name': 'Headlight Fluid',
+								'Price': 4
+							}
+						]
+					}
+				]
+			}");
+			string name = o.Select ("Manufacturers[0].Name");
+			Console.WriteLine (name);
+			// Acme Co
+			decimal productPrice = o.Select ("Manufacturers[0].Products[0].Price");
+			Console.WriteLine (productPrice);
+			// 50
+			string productName = o.Select ("Manufacturers[1].Products[0].Name");
+			Console.WriteLine (productName);
+			// Elbow Grease
+			Assert.AreEqual ("Acme Co", name);
+			Assert.AreEqual (50M, productPrice);
+			Assert.AreEqual ("Elbow Grease", productName);
 		}
 
 	}

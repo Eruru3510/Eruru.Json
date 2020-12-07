@@ -51,7 +51,7 @@ namespace Eruru.Json {
 			get => _Value;
 
 			set {
-				if (JsonAPI.TryGetValueType (value, out JsonValueType valueType)) {
+				if (JsonApi.TryGetValueType (value, out JsonValueType valueType)) {
 					_Type = valueType;
 					_Value = value;
 					return;
@@ -312,45 +312,35 @@ namespace Eruru.Json {
 		}
 
 		public static JsonValue Parse (string text, JsonConfig config = null) {
-			if (text is null) {
-				throw new ArgumentNullException (nameof (text));
+			if (JsonApi.IsNullOrWhiteSpace (text)) {
+				throw new ArgumentException ($"“{nameof (text)}”不能是 Null 或为空", nameof (text));
 			}
-			using (JsonTextReader reader = new JsonTextReader (new StringReader (text), config)) {
-				return new JsonValueBuilder (reader, config).BuildValue ();
-			}
+			return Load (new StringReader (text), null, config);
 		}
 		public static JsonValue Parse (string text, JsonValue value, JsonConfig config = null) {
-			if (text is null) {
-				throw new ArgumentNullException (nameof (text));
+			if (JsonApi.IsNullOrWhiteSpace (text)) {
+				throw new ArgumentException ($"“{nameof (text)}”不能是 Null 或为空", nameof (text));
 			}
-			using (JsonTextReader reader = new JsonTextReader (new StringReader (text), config)) {
-				return new JsonValueBuilder (reader, config).BuildValue (value);
-			}
+			return Load (new StringReader (text), value, config);
 		}
 
 		public static JsonValue Load (string path, JsonConfig config = null) {
-			if (path is null) {
-				throw new ArgumentNullException (nameof (path));
+			if (JsonApi.IsNullOrWhiteSpace (path)) {
+				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或为空", nameof (path));
 			}
-			using (JsonTextReader reader = new JsonTextReader (new StreamReader (path), config)) {
-				return new JsonValueBuilder (reader, config).BuildValue ();
-			}
+			return Load (new StreamReader (path), null, config);
 		}
 		public static JsonValue Load (TextReader textReader, JsonConfig config = null) {
 			if (textReader is null) {
 				throw new ArgumentNullException (nameof (textReader));
 			}
-			using (JsonTextReader reader = new JsonTextReader (textReader, config)) {
-				return new JsonValueBuilder (reader, config).BuildValue ();
-			}
+			return Load (textReader, null, config);
 		}
 		public static JsonValue Load (string path, JsonValue value, JsonConfig config = null) {
-			if (path is null) {
-				throw new ArgumentNullException (nameof (path));
+			if (JsonApi.IsNullOrWhiteSpace (path)) {
+				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或为空", nameof (path));
 			}
-			using (JsonTextReader reader = new JsonTextReader (new StreamReader (path), config)) {
-				return new JsonValueBuilder (reader, config).BuildValue (value);
-			}
+			return Load (new StreamReader (path), value, config);
 		}
 		public static JsonValue Load (TextReader textReader, JsonValue value, JsonConfig config = null) {
 			if (textReader is null) {
@@ -473,6 +463,44 @@ namespace Eruru.Json {
 			return Value as JsonObject ?? defaultValue;
 		}
 
+		public JsonValue Select (string path) {
+			if (JsonApi.IsNullOrWhiteSpace (path)) {
+				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或为空", nameof (path));
+			}
+			return Select (this, path);
+		}
+
+		public static JsonValue Select (JsonValue value, string path) {
+			if (value is null) {
+				throw new ArgumentNullException (nameof (value));
+			}
+			if (JsonApi.IsNullOrWhiteSpace (path)) {
+				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或为空", nameof (path));
+			}
+			JsonValue current = value;
+			using (JsonTextReader reader = new JsonTextReader (new StringReader (path))) {
+				while (reader.MoveNext ()) {
+					switch (reader.Current.Type) {
+						case JsonTokenType.Unknown:
+						case JsonTokenType.Dot:
+							if (reader.Current.Type == JsonTokenType.Dot) {
+								reader.MoveNext ();
+							}
+							current = current[Convert.ToString (reader.Current.Value)];
+							break;
+						case JsonTokenType.LeftBracket:
+							reader.MoveNext ();
+							current = current[Convert.ToInt32 (reader.Current.Value)];
+							reader.MoveNext ();
+							break;
+						default:
+							throw new JsonTextReaderException (reader.Buffer, reader.Current, "键名", JsonKeyword.Dot, JsonKeyword.LeftBracket);
+					}
+				}
+			}
+			return current;
+		}
+
 		JsonArray GetArray () {
 			JsonArray array = ToArray ();
 			if (array is null) {
@@ -493,73 +521,35 @@ namespace Eruru.Json {
 			return jsonObject;
 		}
 
-		int GetHashCode (JsonValueType valueType) {
-			switch (valueType) {
-				case JsonValueType.Long:
-					if (Type != JsonValueType.Long) {
-						return ToLong ().GetHashCode ();
-					}
-					return GetHashCode ();
-				case JsonValueType.Decimal:
-					if (Type != JsonValueType.Decimal) {
-						return ToDecimal ().GetHashCode ();
-					}
-					return GetHashCode ();
-				case JsonValueType.Bool:
-					if (Type != JsonValueType.Bool) {
-						return ToBool ().GetHashCode ();
-					}
-					return GetHashCode ();
-				case JsonValueType.String:
-					if (Type != JsonValueType.String) {
-						return ToString ().GetHashCode ();
-					}
-					return GetHashCode ();
-				case JsonValueType.DateTime:
-					if (Type != JsonValueType.DateTime) {
-						return ToDateTime ().GetHashCode ();
-					}
-					return GetHashCode ();
-				default:
-					throw new JsonNotSupportException (valueType);
-			}
-		}
-
 		#region Override
 
 		public override bool Equals (object obj) {
-			if (Value is null || obj is null) {
-				return Value == obj;
-			}
 			if (obj is JsonValue value) {
 				return Equals (value.Value);
 			}
 			if (obj is JsonArray array) {
-				if (Type != JsonValueType.Array) {
-					return false;
-				}
 				return ToArray ().Equals (array);
 			}
 			if (obj is JsonObject jsonObject) {
-				if (Type != JsonValueType.Object) {
-					return false;
-				}
-				throw new NotImplementedException ();
 				return ToObject ().Equals (jsonObject);
 			}
-			if (JsonAPI.TryGetValueType (obj, out JsonValueType valueType)) {
+			if (JsonApi.TryGetValueType (obj, out JsonValueType valueType)) {
 				switch (valueType) {
+					case JsonValueType.Null:
+						return Value == obj;
 					case JsonValueType.Long:
+						return ToLong ().Equals (Convert.ToInt64 (obj));
 					case JsonValueType.Decimal:
+						return ToDecimal ().Equals (Convert.ToDecimal (obj));
 					case JsonValueType.Bool:
+						return ToBool ().Equals (Convert.ToBoolean (obj));
 					case JsonValueType.String:
+						return ToString ().Equals (Convert.ToString (obj));
 					case JsonValueType.DateTime:
-						return GetHashCode (valueType) == obj.GetHashCode ();
-					default:
-						throw new JsonNotSupportException (valueType);
+						return ToDateTime ().Equals (Convert.ToDateTime (obj));
 				}
 			}
-			throw new JsonNotSupportException (obj);
+			return false;
 		}
 
 		public override int GetHashCode () {
@@ -1538,146 +1528,146 @@ namespace Eruru.Json {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Byte + b;
+			return a.ToByte () + b;
 		}
 		public static int operator + (JsonValue a, ushort b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.UShort + b;
+			return a.ToUShort () + b;
 		}
 		public static uint operator + (JsonValue a, uint b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.UInt + b;
+			return a.ToUInt () + b;
 		}
 		public static ulong operator + (JsonValue a, ulong b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.ULong + b;
+			return a.ToULong () + b;
 		}
 		public static int operator + (JsonValue a, sbyte b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.SByte + b;
+			return a.ToSByte () + b;
 		}
 		public static int operator + (JsonValue a, short b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Short + b;
+			return a.ToShort () + b;
 		}
 		public static int operator + (JsonValue a, int b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Int + b;
+			return a.ToInt () + b;
 		}
 		public static long operator + (JsonValue a, long b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Long + b;
+			return a.ToLong () + b;
 		}
 		public static float operator + (JsonValue a, float b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Float + b;
+			return a.ToFloat () + b;
 		}
 		public static double operator + (JsonValue a, double b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Double + b;
+			return a.ToDouble () + b;
 		}
 		public static decimal operator + (JsonValue a, decimal b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Decimal + b;
+			return a.ToDecimal () + b;
 		}
 		public static int operator + (JsonValue a, char b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Char + b;
+			return a.ToChar () + b;
 		}
 		public static string operator + (JsonValue a, string b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.String + b;
+			return a.ToString () + b;
 		}
 
 		public static int operator + (byte a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a + b.Byte;
+			return a + b.ToByte ();
 		}
 		public static int operator + (ushort a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a + b.UShort;
+			return a + b.ToUShort ();
 		}
 		public static uint operator + (uint a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a + b.UInt;
+			return a + b.ToUInt ();
 		}
 		public static ulong operator + (ulong a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a + b.ULong;
+			return a + b.ToULong ();
 		}
 		public static int operator + (sbyte a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a + b.SByte;
+			return a + b.ToSByte ();
 		}
 		public static int operator + (short a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a + b.Short;
+			return a + b.ToShort ();
 		}
 		public static int operator + (int a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a + b.Int;
+			return a + b.ToInt ();
 		}
 		public static long operator + (long a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a + b.Long;
+			return a + b.ToLong ();
 		}
 		public static float operator + (float a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a + b.Float;
+			return a + b.ToFloat ();
 		}
 		public static double operator + (double a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a + b.Double;
+			return a + b.ToDouble ();
 		}
 		public static decimal operator + (decimal a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a + b.Decimal;
+			return a + b.ToDecimal ();
 		}
 		public static bool operator + (bool a, JsonValue b) {
 			if (b is null) {
@@ -1689,13 +1679,13 @@ namespace Eruru.Json {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a + b.Char;
+			return a + b.ToChar ();
 		}
 		public static string operator + (string a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a + b.String;
+			return a + b.ToString ();
 		}
 
 		#endregion
@@ -1706,146 +1696,146 @@ namespace Eruru.Json {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Byte - b;
+			return a.ToByte () - b;
 		}
 		public static int operator - (JsonValue a, ushort b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.UShort - b;
+			return a.ToUShort () - b;
 		}
 		public static uint operator - (JsonValue a, uint b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.UInt - b;
+			return a.ToUInt () - b;
 		}
 		public static ulong operator - (JsonValue a, ulong b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.ULong - b;
+			return a.ToULong () - b;
 		}
 		public static int operator - (JsonValue a, sbyte b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.SByte - b;
+			return a.ToSByte () - b;
 		}
 		public static int operator - (JsonValue a, short b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Short - b;
+			return a.ToShort () - b;
 		}
 		public static int operator - (JsonValue a, int b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Int - b;
+			return a.ToInt () - b;
 		}
 		public static long operator - (JsonValue a, long b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Long - b;
+			return a.ToLong () - b;
 		}
 		public static float operator - (JsonValue a, float b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Float - b;
+			return a.ToFloat () - b;
 		}
 		public static double operator - (JsonValue a, double b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Double - b;
+			return a.ToDouble () - b;
 		}
 		public static decimal operator - (JsonValue a, decimal b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Decimal - b;
+			return a.ToDecimal () - b;
 		}
 		public static int operator - (JsonValue a, char b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Char - b;
+			return a.ToChar () - b;
 		}
 
 		public static int operator - (byte a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a - b.Byte;
+			return a - b.ToByte ();
 		}
 		public static int operator - (ushort a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a - b.UShort;
+			return a - b.ToUShort ();
 		}
 		public static uint operator - (uint a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a - b.UInt;
+			return a - b.ToUInt ();
 		}
 		public static ulong operator - (ulong a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a - b.ULong;
+			return a - b.ToULong ();
 		}
 		public static int operator - (sbyte a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a - b.SByte;
+			return a - b.ToSByte ();
 		}
 		public static int operator - (short a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a - b.Short;
+			return a - b.ToShort ();
 		}
 		public static int operator - (int a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a - b.Int;
+			return a - b.ToInt ();
 		}
 		public static long operator - (long a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a - b.Long;
+			return a - b.ToLong ();
 		}
 		public static float operator - (float a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a - b.Float;
+			return a - b.ToFloat ();
 		}
 		public static double operator - (double a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a - b.Double;
+			return a - b.ToDouble ();
 		}
 		public static decimal operator - (decimal a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a - b.Decimal;
+			return a - b.ToDecimal ();
 		}
 		public static int operator - (char a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a - b.Char;
+			return a - b.ToChar ();
 		}
 
 		#endregion
@@ -1856,146 +1846,146 @@ namespace Eruru.Json {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Byte * b;
+			return a.ToByte () * b;
 		}
 		public static int operator * (JsonValue a, ushort b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.UShort * b;
+			return a.ToUShort () * b;
 		}
 		public static uint operator * (JsonValue a, uint b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.UInt * b;
+			return a.ToUInt () * b;
 		}
 		public static ulong operator * (JsonValue a, ulong b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.ULong * b;
+			return a.ToULong () * b;
 		}
 		public static int operator * (JsonValue a, sbyte b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.SByte * b;
+			return a.ToSByte () * b;
 		}
 		public static int operator * (JsonValue a, short b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Short * b;
+			return a.ToShort () * b;
 		}
 		public static int operator * (JsonValue a, int b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Int * b;
+			return a.ToInt () * b;
 		}
 		public static long operator * (JsonValue a, long b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Long * b;
+			return a.ToLong () * b;
 		}
 		public static float operator * (JsonValue a, float b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Float * b;
+			return a.ToFloat () * b;
 		}
 		public static double operator * (JsonValue a, double b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Double * b;
+			return a.ToDouble () * b;
 		}
 		public static decimal operator * (JsonValue a, decimal b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Decimal * b;
+			return a.ToDecimal () * b;
 		}
 		public static int operator * (JsonValue a, char b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Char * b;
+			return a.ToChar () * b;
 		}
 
 		public static int operator * (byte a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a * b.Byte;
+			return a * b.ToByte ();
 		}
 		public static int operator * (ushort a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a * b.UShort;
+			return a * b.ToUShort ();
 		}
 		public static uint operator * (uint a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a * b.UInt;
+			return a * b.ToUInt ();
 		}
 		public static ulong operator * (ulong a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a * b.ULong;
+			return a * b.ToULong ();
 		}
 		public static int operator * (sbyte a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a * b.SByte;
+			return a * b.ToSByte ();
 		}
 		public static int operator * (short a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a * b.Short;
+			return a * b.ToShort ();
 		}
 		public static int operator * (int a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a * b.Int;
+			return a * b.ToInt ();
 		}
 		public static long operator * (long a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a * b.Long;
+			return a * b.ToLong ();
 		}
 		public static float operator * (float a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a * b.Float;
+			return a * b.ToFloat ();
 		}
 		public static double operator * (double a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a * b.Double;
+			return a * b.ToDouble ();
 		}
 		public static decimal operator * (decimal a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a * b.Decimal;
+			return a * b.ToDecimal ();
 		}
 		public static int operator * (char a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a * b.Char;
+			return a * b.ToChar ();
 		}
 
 		#endregion
@@ -2006,146 +1996,146 @@ namespace Eruru.Json {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Byte / b;
+			return a.ToByte () / b;
 		}
 		public static int operator / (JsonValue a, ushort b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.UShort / b;
+			return a.ToUShort () / b;
 		}
 		public static uint operator / (JsonValue a, uint b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.UInt / b;
+			return a.ToUInt () / b;
 		}
 		public static ulong operator / (JsonValue a, ulong b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.ULong / b;
+			return a.ToULong () / b;
 		}
 		public static int operator / (JsonValue a, sbyte b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.SByte / b;
+			return a.ToSByte () / b;
 		}
 		public static int operator / (JsonValue a, short b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Short / b;
+			return a.ToShort () / b;
 		}
 		public static int operator / (JsonValue a, int b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Int / b;
+			return a.ToInt () / b;
 		}
 		public static long operator / (JsonValue a, long b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Long / b;
+			return a.ToLong () / b;
 		}
 		public static float operator / (JsonValue a, float b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Float / b;
+			return a.ToFloat () / b;
 		}
 		public static double operator / (JsonValue a, double b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Double / b;
+			return a.ToDouble () / b;
 		}
 		public static decimal operator / (JsonValue a, decimal b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Decimal / b;
+			return a.ToDecimal () / b;
 		}
 		public static int operator / (JsonValue a, char b) {
 			if (a is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a.Char / b;
+			return a.ToChar () / b;
 		}
 
 		public static int operator / (byte a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a / b.Byte;
+			return a / b.ToByte ();
 		}
 		public static int operator / (ushort a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a / b.UShort;
+			return a / b.ToUShort ();
 		}
 		public static uint operator / (uint a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a / b.UInt;
+			return a / b.ToUInt ();
 		}
 		public static ulong operator / (ulong a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a / b.ULong;
+			return a / b.ToULong ();
 		}
 		public static int operator / (sbyte a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a / b.SByte;
+			return a / b.ToSByte ();
 		}
 		public static int operator / (short a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a / b.Short;
+			return a / b.ToShort ();
 		}
 		public static int operator / (int a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a / b.Int;
+			return a / b.ToInt ();
 		}
 		public static long operator / (long a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a / b.Long;
+			return a / b.ToLong ();
 		}
 		public static float operator / (float a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a / b.Float;
+			return a / b.ToFloat ();
 		}
 		public static double operator / (double a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a / b.Double;
+			return a / b.ToDouble ();
 		}
 		public static decimal operator / (decimal a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a / b.Decimal;
+			return a / b.ToDecimal ();
 		}
 		public static int operator / (char a, JsonValue b) {
 			if (b is null) {
 				throw new ArgumentNullException (nameof (a));
 			}
-			return a / b.Char;
+			return a / b.ToChar ();
 		}
 
 		#endregion
@@ -2159,12 +2149,10 @@ namespace Eruru.Json {
 			}
 		}
 		public void Serialize (string path, JsonConfig config = null) {
-			if (path is null) {
-				throw new ArgumentNullException (nameof (path));
+			if (JsonApi.IsNullOrWhiteSpace (path)) {
+				throw new ArgumentException ($"“{nameof (path)}”不能为 Null 或空白", nameof (path));
 			}
-			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), new StreamWriter (path), config)) {
-				builder.BuildValue ();
-			}
+			Serialize (new StreamWriter (path), config);
 		}
 		public void Serialize (TextWriter textWriter, JsonConfig config = null) {
 			if (textWriter is null) {
@@ -2181,12 +2169,10 @@ namespace Eruru.Json {
 			}
 		}
 		public void Serialize (string path, bool compress, JsonConfig config = null) {
-			if (path is null) {
-				throw new ArgumentNullException (nameof (path));
+			if (JsonApi.IsNullOrWhiteSpace (path)) {
+				throw new ArgumentException ($"“{nameof (path)}”不能为 Null 或空白", nameof (path));
 			}
-			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), new StreamWriter (path), compress, config)) {
-				builder.BuildValue ();
-			}
+			Serialize (new StreamWriter (path), compress, config);
 		}
 		public void Serialize (TextWriter textWriter, bool compress, JsonConfig config = null) {
 			if (textWriter is null) {
@@ -2202,10 +2188,15 @@ namespace Eruru.Json {
 		#region IEnumerable
 
 		public IEnumerator GetEnumerator () {
-			if (Type == JsonValueType.Object) {
-				return GetObject ().GetEnumerator ();
+			switch (Type) {
+				default:
+				case JsonValueType.String:
+					return String.GetEnumerator ();
+				case JsonValueType.Array:
+					return GetArray ().GetEnumerator ();
+				case JsonValueType.Object:
+					return GetObject ().GetEnumerator ();
 			}
-			return GetArray ().GetEnumerator ();
 		}
 
 		#endregion
@@ -2217,7 +2208,7 @@ namespace Eruru.Json {
 		}
 
 		public object ToType (Type conversionType, IFormatProvider provider) {
-			return JsonAPI.ChangeType (Value, conversionType);
+			return JsonApi.ChangeType (Value, conversionType);
 		}
 
 		public bool ToBoolean (IFormatProvider provider) {
@@ -2271,22 +2262,10 @@ namespace Eruru.Json {
 		#region IComparable
 
 		public int CompareTo (object obj) {
-			if (Value is null) {
-				return obj is null ? 0 : 1;
-			}
-			if (obj is null) {
-				return Value is null ? 0 : -1;
-			}
 			if (obj is JsonValue value) {
 				return CompareTo (value.Value);
 			}
-			if (obj is JsonArray) {
-				return 0;
-			}
-			if (obj is JsonObject) {
-				return 0;
-			}
-			if (JsonAPI.TryGetValueType (obj, out JsonValueType valueType)) {
+			if (JsonApi.TryGetValueType (obj, out JsonValueType valueType)) {
 				switch (valueType) {
 					case JsonValueType.Long:
 						return ToLong ().CompareTo (Convert.ToInt64 (obj));
@@ -2298,11 +2277,9 @@ namespace Eruru.Json {
 						return ToString ().CompareTo (Convert.ToString (obj));
 					case JsonValueType.DateTime:
 						return ToDateTime ().CompareTo (Convert.ToDateTime (obj));
-					default:
-						throw new JsonNotSupportException (valueType);
 				}
 			}
-			throw new JsonNotSupportException (obj);
+			return 0;
 		}
 
 		#endregion
@@ -2327,38 +2304,38 @@ namespace Eruru.Json {
 
 		public JsonValue this[string name] {
 
-			get => GetObject ()[name];
+			get => GetObject ()[name ?? throw new ArgumentException ($"“{nameof (name)}”不能是 Null 或为空", nameof (name))];
 
-			set => GetObject ()[name] = value;
+			set => GetObject ()[name ?? throw new ArgumentException ($"“{nameof (name)}”不能是 Null 或为空", nameof (name))] = value;
 
 		}
 
 		public JsonKey Add (string name) {
-			if (name is null) {
-				throw new ArgumentNullException (nameof (name));
+			if (JsonApi.IsNullOrWhiteSpace (name)) {
+				throw new ArgumentException ($"“{nameof (name)}”不能是 Null 或为空", nameof (name));
 			}
 			return GetObject ().Add (name);
 		}
 		public JsonKey Add (string name, object value) {
-			if (name is null) {
-				throw new ArgumentNullException (nameof (name));
+			if (JsonApi.IsNullOrWhiteSpace (name)) {
+				throw new ArgumentException ($"“{nameof (name)}”不能是 Null 或为空", nameof (name));
 			}
 			return GetObject ().Add (name, value);
 		}
 
 		public JsonKey Get (string name) {
-			if (name is null) {
-				throw new ArgumentNullException (nameof (name));
+			if (JsonApi.IsNullOrWhiteSpace (name)) {
+				throw new ArgumentException ($"“{nameof (name)}”不能是 Null 或为空", nameof (name));
 			}
 			return GetObject ().Add (name);
 		}
 
 		public JsonKey Rename (string oldName, string newName) {
-			if (oldName is null) {
-				throw new ArgumentNullException (nameof (oldName));
+			if (JsonApi.IsNullOrWhiteSpace (oldName)) {
+				throw new ArgumentException ($"“{nameof (oldName)}”不能是 Null 或为空", nameof (oldName));
 			}
-			if (newName is null) {
-				throw new ArgumentNullException (nameof (newName));
+			if (JsonApi.IsNullOrWhiteSpace (newName)) {
+				throw new ArgumentException ($"“{nameof (newName)}”不能是 Null 或为空", nameof (newName));
 			}
 			return GetObject ().Rename (oldName, newName);
 		}

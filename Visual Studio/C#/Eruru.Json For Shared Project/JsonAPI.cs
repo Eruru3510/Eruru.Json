@@ -11,7 +11,7 @@ namespace Eruru.Json {
 	public delegate void JsonAction<in T1, in T2, in T3, in T4> (T1 arg1, T2 arg2, T3 arg3, T4 arg4);
 	public delegate TResult JsonFunc<in T, out TResult> (T arg);
 
-	static class JsonAPI {
+	static class JsonApi {
 
 		static readonly BindingFlags BindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 		static readonly KeyValuePair<char, char>[] Escapes = new KeyValuePair<char, char>[] {
@@ -141,8 +141,8 @@ namespace Eruru.Json {
 			if (instance is null) {
 				throw new ArgumentNullException (nameof (instance));
 			}
-			if (message is null) {
-				throw new ArgumentNullException (nameof (message));
+			if (IsNullOrWhiteSpace (message)) {
+				throw new ArgumentException ($"“{nameof (message)}”不能为 Null 或空白", nameof (message));
 			}
 			typeof (Exception).GetField ("_message", BindingFlags).SetValue (instance, message);
 		}
@@ -208,7 +208,7 @@ namespace Eruru.Json {
 		}
 
 		public static bool CanSerialize (JsonConfig config, object instance) {
-			if (config.IgnoreDefault) {
+			if (config.IgnoreDefaultValue) {
 				if (instance is null) {
 					return false;
 				}
@@ -217,7 +217,7 @@ namespace Eruru.Json {
 				}
 				return true;
 			}
-			if (config.IgnoreNull) {
+			if (config.IgnoreNullValue) {
 				if (instance is null) {
 					return false;
 				}
@@ -263,11 +263,11 @@ namespace Eruru.Json {
 		}
 
 		public static bool Equals (string a, string b, JsonConfig config) {
-			if (a is null) {
-				throw new ArgumentNullException (nameof (a));
+			if (IsNullOrWhiteSpace (a)) {
+				throw new ArgumentException ($"“{nameof (a)}”不能为 Null 或空白", nameof (a));
 			}
-			if (b is null) {
-				throw new ArgumentNullException (nameof (b));
+			if (IsNullOrWhiteSpace (b)) {
+				throw new ArgumentException ($"“{nameof (b)}”不能为 Null 或空白", nameof (b));
 			}
 			if (config is null) {
 				throw new ArgumentNullException (nameof (config));
@@ -276,8 +276,8 @@ namespace Eruru.Json {
 		}
 
 		public static string Unescape (string text) {
-			if (text is null) {
-				throw new ArgumentNullException (nameof (text));
+			if (IsNullOrWhiteSpace (text)) {
+				throw new ArgumentException ($"“{nameof (text)}”不能为 Null 或空白", nameof (text));
 			}
 			StringBuilder stringBuilder = new StringBuilder ();
 			for (int i = 0; i < text.Length; i++) {
@@ -290,6 +290,21 @@ namespace Eruru.Json {
 				stringBuilder.Append (text[i]);
 			}
 			return stringBuilder.ToString ();
+		}
+
+		public static bool IsNullOrWhiteSpace (string text) {
+			if (text is null) {
+				return true;
+			}
+			if (text.Length == 0) {
+				return true;
+			}
+			foreach (char character in text) {
+				if (!char.IsWhiteSpace (character)) {
+					return false;
+				}
+			}
+			return true;
 		}
 
 		static StringComparison GetStringComparison (JsonConfig config) {

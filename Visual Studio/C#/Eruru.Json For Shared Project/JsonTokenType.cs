@@ -14,6 +14,7 @@
 		RightBracket = 1 << 9,
 		LeftBrace = 1 << 10,
 		RightBrace = 1 << 11,
+		Dot = 1 << 12,
 		Value = Null | Long | Decimal | Bool | String
 
 	}

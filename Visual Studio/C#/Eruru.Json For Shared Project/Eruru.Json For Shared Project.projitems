@@ -15,7 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)IJsonObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IJsonReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IJsonSerializable.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)JsonAPI.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonApi.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonArrayType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonConfig.cs" />

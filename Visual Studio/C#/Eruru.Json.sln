@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eruru.Json_For_.NET_Framewo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestProject1", "UnitTestProject1\UnitTestProject1.csproj", "{58E29772-832B-446B-9CF5-C2DB05D9569F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eruru.Json For .NET Standard 2.0", "Eruru.Json For .NET Standard 2.0\Eruru.Json For .NET Standard 2.0.csproj", "{C07B24D6-EFCF-4743-AAB0-9D8F46FA89EF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eruru.Json_For_.NET_Standard_2.0", "Eruru.Json For .NET Standard 2.0\Eruru.Json_For_.NET_Standard_2.0.csproj", "{C07B24D6-EFCF-4743-AAB0-9D8F46FA89EF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsFormsApp1", "WindowsFormsApp1\WindowsFormsApp1.csproj", "{B4221D1A-0086-429C-BD4A-C7B980A456BD}"
 EndProject

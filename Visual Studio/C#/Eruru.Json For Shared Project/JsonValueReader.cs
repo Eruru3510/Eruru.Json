@@ -34,7 +34,7 @@ namespace Eruru.Json {
 					readObject ();
 					return;
 			}
-			if (JsonAPI.HasFlag (Values.Peek ().Type, JsonValueType.Value)) {
+			if (JsonApi.HasFlag (Values.Peek ().Type, JsonValueType.Value)) {
 				value (Values.Peek ().Value, Values.Peek ().Type);
 				return;
 			}

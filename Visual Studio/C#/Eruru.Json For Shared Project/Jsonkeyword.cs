@@ -16,7 +16,7 @@
 		public const char LeftBrace = '{';
 		public const char RightBrace = '}';
 		public static readonly char[] Numbers = { '+', '-', '.', 'e', 'E', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
-		public static char Dot = '.';
+		public const char Dot = '.';
 
 	}
 

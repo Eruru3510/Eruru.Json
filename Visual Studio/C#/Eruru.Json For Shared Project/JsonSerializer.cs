@@ -27,10 +27,10 @@ namespace Eruru.Json {
 			}
 			Stacks.Peek ().Type = Stacks.Peek ().Instance.GetType ();
 			if (isArray) {
-				JsonAPI.TryGetArrayType (Stacks.Peek ().Type, out Stacks.Peek ().ArrayType);
+				JsonApi.TryGetArrayType (Stacks.Peek ().Type, out Stacks.Peek ().ArrayType);
 				return;
 			}
-			JsonAPI.TryGetObjectType (Stacks.Peek ().Type, out Stacks.Peek ().ObjectType);
+			JsonApi.TryGetObjectType (Stacks.Peek ().Type, out Stacks.Peek ().ObjectType);
 		}
 
 		object ConverterWrite () {
@@ -55,16 +55,16 @@ namespace Eruru.Json {
 				return;
 			}
 			Stacks.Peek ().Type = Stacks.Peek ().Instance.GetType ();
-			if (JsonAPI.TryGetValueType (Stacks.Peek ().Type, out JsonValueType valueType, Config)) {
+			if (JsonApi.TryGetValueType (Stacks.Peek ().Type, out JsonValueType valueType, Config)) {
 				value (ConverterWrite (), valueType);
 				return;
 			}
-			if (JsonAPI.TryGetArrayType (Stacks.Peek ().Type, out JsonArrayType arrayType)) {
+			if (JsonApi.TryGetArrayType (Stacks.Peek ().Type, out JsonArrayType arrayType)) {
 				Stacks.Peek ().ArrayType = arrayType;
 				readArray ();
 				return;
 			}
-			if (JsonAPI.TryGetObjectType (Stacks.Peek ().Type, out JsonObjectType objectType)) {
+			if (JsonApi.TryGetObjectType (Stacks.Peek ().Type, out JsonObjectType objectType)) {
 				Stacks.Peek ().ObjectType = objectType;
 				readObject ();
 				return;
@@ -142,7 +142,7 @@ namespace Eruru.Json {
 			Initialize (false);
 			switch (Stacks.Peek ().ObjectType) {
 				case JsonObjectType.Class:
-					JsonAPI.ForEachMembers (Stacks.Peek ().Type, (memberInfo, fieldInfo, propertyInfo, field) => {
+					JsonApi.ForEachMembers (Stacks.Peek ().Type, (memberInfo, fieldInfo, propertyInfo, field) => {
 						bool isReaded = false;
 						object instance = null;
 						object Read () {
@@ -159,7 +159,7 @@ namespace Eruru.Json {
 									throw new JsonNotSupportException (memberInfo.MemberType);
 							}
 						}
-						if (!JsonAPI.CanSerialize (Config, Read ())) {
+						if (!JsonApi.CanSerialize (Config, Read ())) {
 							return;
 						}
 						if (key (field?.Name ?? memberInfo.Name)) {
