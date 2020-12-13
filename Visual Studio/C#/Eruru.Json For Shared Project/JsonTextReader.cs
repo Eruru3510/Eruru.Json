@@ -1,254 +1,35 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
+using Eruru.TextTokenizer;
 
 namespace Eruru.Json {
 
-	public class JsonTextReader : IDisposable, IEnumerable<JsonToken>, IEnumerator<JsonToken>, IJsonReader {
+	public class JsonTextReader : TextTokenizer<JsonTokenType>, IJsonReader {
 
-		public Queue<int> Buffer { get; } = new Queue<int> ();
-		public int BufferLength { get; set; } = 500;
-
-		readonly TextReader TextReader;
 		readonly JsonConfig Config;
-		int Index;
 
-		public JsonTextReader (TextReader textReader, JsonConfig config = null) {
-			TextReader = textReader ?? throw new ArgumentNullException (nameof (textReader));
-			Config = config;
-		}
-
-		int Read () {
-			while (Buffer.Count >= BufferLength) {
-				Buffer.Dequeue ();
+		public JsonTextReader (TextReader textReader, JsonConfig config = null) : base (
+			JsonTokenType.Unknown,
+			JsonTokenType.Integer,
+			JsonTokenType.Decimal,
+			JsonTokenType.String
+		) {
+			if (textReader is null) {
+				throw new ArgumentNullException (nameof (textReader));
 			}
-			Buffer.Enqueue (TextReader.Read ());
-			Index++;
-			return Buffer.Peek ();
+			TextReader = textReader;
+			Config = config ?? JsonConfig.Default;
+			Add (JsonKeyword.LeftBrace, JsonTokenType.LeftBrace);
+			Add (JsonKeyword.RightBrace, JsonTokenType.RightBrace);
+			Add (JsonKeyword.LeftBracket, JsonTokenType.LeftBracket);
+			Add (JsonKeyword.RightBracket, JsonTokenType.RightBracket);
+			Add (JsonKeyword.Comma, JsonTokenType.Comma);
+			Add (JsonKeyword.Semicolon, JsonTokenType.Semicolon);
+			Add (JsonKeyword.Null, JsonTokenType.Null);
+			Add (JsonKeyword.True, JsonTokenType.True);
+			Add (JsonKeyword.False, JsonTokenType.False);
 		}
-
-		char Peek () {
-			return (char)TextReader.Peek ();
-		}
-
-		char SkipWhiteSpace () {
-			while (TextReader.Peek () > -1) {
-				char character = Peek ();
-				if (char.IsWhiteSpace (character)) {
-					Read ();
-					continue;
-				}
-				return character;
-			}
-			return Peek ();
-		}
-
-		string ReadString (char end) {
-			Read ();
-			StringBuilder stringBuilder = new StringBuilder ();
-			while (TextReader.Peek () > -1) {
-				char character = Peek ();
-				if (character == JsonKeyword.Backslash) {
-					stringBuilder.Append (character);
-					Read ();
-					if (TextReader.Peek () > -1) {
-						stringBuilder.Append (Peek ());
-						Read ();
-					}
-					continue;
-				}
-				if (character == end) {
-					Read ();
-					return stringBuilder.ToString ();
-				}
-				stringBuilder.Append (character);
-				Read ();
-			}
-			JsonToken token = new JsonToken {
-				Type = JsonTokenType.String,
-				Index = Current.Index + Current.Length,
-				Length = stringBuilder.Length,
-				Value = stringBuilder.ToString ()
-			};
-			throw new JsonTextReaderException ("字符串没有引号结束", Buffer, token);
-		}
-
-		string ReadNumber (out bool isFloat) {
-			isFloat = false;
-			StringBuilder stringBuilder = new StringBuilder ();
-			while (TextReader.Peek () > -1) {
-				char character = Peek ();
-				if (!Array.Exists (JsonKeyword.Numbers, value => character == value)) {
-					break;
-				}
-				if (!isFloat && character == JsonKeyword.Dot) {
-					isFloat = true;
-				}
-				stringBuilder.Append (character);
-				Read ();
-			}
-			return stringBuilder.ToString ();
-		}
-
-		string ReadValue () {
-			StringBuilder stringBuilder = new StringBuilder ();
-			while (TextReader.Peek () > -1) {
-				char character = Peek ();
-				if (!char.IsLetter (character)) {
-					break;
-				}
-				stringBuilder.Append (character);
-				Read ();
-			}
-			return stringBuilder.ToString ();
-		}
-
-		#region IDisposable
-
-		public void Dispose () {
-			TextReader.Dispose ();
-		}
-
-		#endregion
-
-		#region IEnumerable<JsonToken>
-
-		public IEnumerator<JsonToken> GetEnumerator () {
-			return this;
-		}
-
-		IEnumerator IEnumerable.GetEnumerator () {
-			return this;
-		}
-
-		#endregion
-
-		#region IEnumerator<JsonToken>
-
-		public JsonToken Current {
-
-			get {
-				if (NeedMoveNext) {
-					MoveNext ();
-				}
-				return _Current;
-			}
-
-		}
-
-		object IEnumerator.Current {
-
-			get => Current;
-
-		}
-
-		JsonToken _Current;
-		bool NeedMoveNext = true;
-
-		public bool MoveNext () {
-			NeedMoveNext = false;
-			JsonToken token = new JsonToken () {
-				Type = JsonTokenType.Unknown,
-				Index = Index
-			};
-			while (TextReader.Peek () > -1) {
-				char character = SkipWhiteSpace ();
-				switch (character) {
-					case JsonKeyword.Comma:
-						token.Type = JsonTokenType.Comma;
-						break;
-					case JsonKeyword.Semicolon:
-						token.Type = JsonTokenType.Semicolon;
-						break;
-					case JsonKeyword.LeftBracket:
-						token.Type = JsonTokenType.LeftBracket;
-						break;
-					case JsonKeyword.RightBracket:
-						token.Type = JsonTokenType.RightBracket;
-						break;
-					case JsonKeyword.LeftBrace:
-						token.Type = JsonTokenType.LeftBrace;
-						break;
-					case JsonKeyword.RightBrace:
-						token.Type = JsonTokenType.RightBrace;
-						break;
-					case JsonKeyword.Dot:
-						token.Type = JsonTokenType.Dot;
-						break;
-				}
-				if (token.Type != JsonTokenType.Unknown) {
-					token.Length = 1;
-					token.Value = character;
-					_Current = token;
-					Read ();
-					return true;
-				}
-				string text;
-				switch (character) {
-					case JsonKeyword.SingleQuot:
-					case JsonKeyword.DoubleQuot:
-						text = ReadString (character);
-						token.Type = JsonTokenType.String;
-						token.Length = text.Length + 2;
-						token.Value = Regex.Unescape (text);
-						_Current = token;
-						return true;
-				}
-				if (Array.Exists (JsonKeyword.Numbers, value => character == value)) {
-					text = ReadNumber (out bool isFloat);
-					if (isFloat) {
-						if (decimal.TryParse (text, out decimal result)) {
-							token.Type = JsonTokenType.Decimal;
-							token.Value = result;
-						}
-					} else {
-						if (long.TryParse (text, out long result)) {
-							token.Type = JsonTokenType.Long;
-							token.Value = result;
-						}
-					}
-					token.Length = text.Length;
-					if (token.Type == JsonTokenType.Unknown) {
-						token.Value = text;
-						_Current = token;
-						return true;
-					}
-					_Current = token;
-					return true;
-				}
-				text = ReadValue ();
-				token.Length = text.Length;
-				switch (text) {
-					case JsonKeyword.Null:
-						token.Type = JsonTokenType.Null;
-						break;
-					case JsonKeyword.True:
-						token.Type = JsonTokenType.Bool;
-						token.Value = true;
-						break;
-					case JsonKeyword.False:
-						token.Type = JsonTokenType.Bool;
-						token.Value = false;
-						break;
-				}
-				if (token.Type == JsonTokenType.Unknown) {
-					token.Value = text;
-				}
-				_Current = token;
-				return true;
-			}
-			_Current = token;
-			return false;
-		}
-
-		public void Reset () {
-			throw new JsonException ($"{nameof (TextReader)}无法{nameof (Reset)}");
-		}
-
-		#endregion
 
 		#region IJsonReader
 
@@ -260,6 +41,30 @@ namespace Eruru.Json {
 				throw new ArgumentNullException (nameof (readObject));
 			}
 			switch (Current.Type) {
+				case JsonTokenType.Integer:
+					value?.Invoke (Current.Value, JsonValueType.Integer);
+					return;
+				case JsonTokenType.Decimal:
+					value?.Invoke (Current.Value, JsonValueType.Decimal);
+					return;
+				case JsonTokenType.String: {
+					string text = (string)Current.Value;
+					if (DateTime.TryParse (text, out DateTime dateTime)) {
+						value?.Invoke (dateTime, JsonValueType.DateTime);
+						return;
+					}
+					value?.Invoke (Regex.Unescape (text), JsonValueType.String);
+					return;
+				}
+				case JsonTokenType.Null:
+					value?.Invoke (null, JsonValueType.Null);
+					return;
+				case JsonTokenType.True:
+					value?.Invoke (true, JsonValueType.Bool);
+					return;
+				case JsonTokenType.False:
+					value?.Invoke (false, JsonValueType.Bool);
+					return;
 				case JsonTokenType.LeftBracket:
 					readArray ();
 					return;
@@ -267,19 +72,10 @@ namespace Eruru.Json {
 					readObject ();
 					return;
 			}
-			if (JsonApi.HasFlag (Current.Type, JsonTokenType.Value)) {
-				if (Current.Type == JsonTokenType.String && DateTime.TryParse (Current.Value.ToString (), out DateTime dateTime)) {
-					value?.Invoke (dateTime, JsonValueType.DateTime);
-					return;
-				}
-				value?.Invoke (Current.Value, JsonApi.TokenTypeToValueType (Current.Type));
-				return;
-			}
 			throw new JsonTextReaderException (
 				Buffer,
 				Current,
-				JsonTokenType.Null, JsonTokenType.Long, JsonTokenType.Decimal, JsonTokenType.Bool, JsonTokenType.String,
-				JsonTokenType.LeftBracket, JsonTokenType.LeftBrace
+				JsonKeyword.Null, "整数", "小数", JsonKeyword.True, JsonKeyword.False, "字符串", JsonKeyword.LeftBracket, JsonKeyword.LeftBrace
 			);
 		}
 
@@ -309,7 +105,7 @@ namespace Eruru.Json {
 			}
 			JsonTokenType start = isArray ? JsonTokenType.LeftBracket : JsonTokenType.LeftBrace;
 			if (Current.Type != start) {
-				throw new JsonTextReaderException (Buffer, Current, start);
+				throw new JsonTextReaderException (Buffer, Current, isArray ? JsonKeyword.LeftBracket : JsonKeyword.LeftBrace);
 			}
 			JsonTokenType end = isArray ? JsonTokenType.RightBracket : JsonTokenType.RightBrace;
 			bool isFirst = true;
@@ -321,7 +117,7 @@ namespace Eruru.Json {
 					isFirst = false;
 				} else {
 					if (Current.Type != JsonTokenType.Comma) {
-						throw new JsonTextReaderException (Buffer, Current, JsonTokenType.Comma);
+						throw new JsonTextReaderException (Buffer, Current, JsonKeyword.Comma);
 					}
 					MoveNext ();
 				}
@@ -333,7 +129,7 @@ namespace Eruru.Json {
 					needReadValue = key ((string)Current.Value);
 					MoveNext ();
 					if (Current.Type != JsonTokenType.Semicolon) {
-						throw new JsonTextReaderException (Buffer, Current, JsonTokenType.Semicolon);
+						throw new JsonTextReaderException (Buffer, Current, JsonKeyword.Semicolon);
 					}
 					MoveNext ();
 				}
@@ -343,7 +139,7 @@ namespace Eruru.Json {
 				}
 				ConsumptionValue ();
 			}
-			throw new JsonTextReaderException (Buffer, Current, end);
+			throw new JsonTextReaderException (Buffer, Current, isArray ? JsonKeyword.RightBracket : JsonKeyword.RightBrace);
 		}
 
 		void ConsumptionValue () {

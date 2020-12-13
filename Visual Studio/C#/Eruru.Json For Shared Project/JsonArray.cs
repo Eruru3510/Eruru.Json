@@ -29,21 +29,21 @@ namespace Eruru.Json {
 		}
 
 		public static JsonArray Parse (string text, JsonConfig config = null) {
-			if (JsonApi.IsNullOrWhiteSpace (text)) {
-				throw new ArgumentException ($"“{nameof (text)}”不能是 Null 或为空", nameof (text));
+			if (text is null) {
+				throw new ArgumentNullException (nameof (text));
 			}
 			return Load (new StringReader (text), null, config);
 		}
 		public static JsonArray Parse (string text, JsonArray array, JsonConfig config = null) {
-			if (JsonApi.IsNullOrWhiteSpace (text)) {
-				throw new ArgumentException ($"“{nameof (text)}”不能是 Null 或为空", nameof (text));
+			if (text is null) {
+				throw new ArgumentNullException (nameof (text));
 			}
 			return Load (new StringReader (text), array, config);
 		}
 
 		public static JsonArray Load (string path, JsonConfig config = null) {
 			if (JsonApi.IsNullOrWhiteSpace (path)) {
-				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或为空", nameof (path));
+				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或空白", nameof (path));
 			}
 			return Load (new StreamReader (path), null, config);
 		}
@@ -55,7 +55,7 @@ namespace Eruru.Json {
 		}
 		public static JsonArray Load (string path, JsonArray array, JsonConfig config = null) {
 			if (JsonApi.IsNullOrWhiteSpace (path)) {
-				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或为空", nameof (path));
+				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或空白", nameof (path));
 			}
 			return Load (new StreamReader (path), array, config);
 		}
@@ -70,7 +70,7 @@ namespace Eruru.Json {
 
 		public JsonValue Select (string path) {
 			if (JsonApi.IsNullOrWhiteSpace (path)) {
-				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或为空", nameof (path));
+				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或空白", nameof (path));
 			}
 			return JsonValue.Select (this, path);
 		}
@@ -80,8 +80,8 @@ namespace Eruru.Json {
 		}
 
 		public static implicit operator JsonArray (string text) {
-			if (JsonApi.IsNullOrWhiteSpace (text)) {
-				throw new ArgumentException ($"“{nameof (text)}”不能为 Null 或空白", nameof (text));
+			if (text is null) {
+				throw new ArgumentNullException (nameof (text));
 			}
 			return Parse (text);
 		}
@@ -165,7 +165,7 @@ namespace Eruru.Json {
 
 		public bool Equals (JsonArray other) {
 			if (other is null) {
-				throw new ArgumentNullException (nameof (other));
+				return false;
 			}
 			if (Count != other.Count) {
 				return false;

@@ -56,7 +56,7 @@ namespace Eruru.Json {
 				case TypeCode.Int16:
 				case TypeCode.Int32:
 				case TypeCode.Int64:
-					valueType = JsonValueType.Long;
+					valueType = JsonValueType.Integer;
 					return true;
 				case TypeCode.Single:
 				case TypeCode.Double:
@@ -118,23 +118,6 @@ namespace Eruru.Json {
 			}
 			objectType = JsonObjectType.Unknown;
 			return false;
-		}
-
-		public static JsonValueType TokenTypeToValueType (JsonTokenType tokenType) {
-			switch (tokenType) {
-				case JsonTokenType.Null:
-					return JsonValueType.Null;
-				case JsonTokenType.Decimal:
-					return JsonValueType.Decimal;
-				case JsonTokenType.Long:
-					return JsonValueType.Long;
-				case JsonTokenType.Bool:
-					return JsonValueType.Bool;
-				case JsonTokenType.String:
-					return JsonValueType.String;
-				default:
-					throw new JsonNotSupportException (tokenType);
-			}
 		}
 
 		public static void SetExceptionMessage (object instance, string message) {
@@ -208,18 +191,20 @@ namespace Eruru.Json {
 		}
 
 		public static bool CanSerialize (JsonConfig config, object instance) {
+			if (config.IgnoreNullValue) {
+				if (instance is null) {
+					return false;
+				}
+			}
 			if (config.IgnoreDefaultValue) {
 				if (instance is null) {
 					return false;
 				}
-				if (Equals (instance, Activator.CreateInstance (instance.GetType ()))) {
-					return false;
-				}
-				return true;
-			}
-			if (config.IgnoreNullValue) {
-				if (instance is null) {
-					return false;
+				Type type = instance.GetType ();
+				if (type.IsValueType) {
+					if (Equals (instance, Activator.CreateInstance (type))) {
+						return false;
+					}
 				}
 			}
 			return true;
@@ -263,21 +248,15 @@ namespace Eruru.Json {
 		}
 
 		public static bool Equals (string a, string b, JsonConfig config) {
-			if (IsNullOrWhiteSpace (a)) {
-				throw new ArgumentException ($"“{nameof (a)}”不能为 Null 或空白", nameof (a));
-			}
-			if (IsNullOrWhiteSpace (b)) {
-				throw new ArgumentException ($"“{nameof (b)}”不能为 Null 或空白", nameof (b));
-			}
 			if (config is null) {
 				throw new ArgumentNullException (nameof (config));
 			}
-			return a.Equals (b, GetStringComparison (config));
+			return string.Equals (a, b, GetStringComparison (config));
 		}
 
 		public static string Unescape (string text) {
-			if (IsNullOrWhiteSpace (text)) {
-				throw new ArgumentException ($"“{nameof (text)}”不能为 Null 或空白", nameof (text));
+			if (text is null) {
+				throw new ArgumentNullException (nameof (text));
 			}
 			StringBuilder stringBuilder = new StringBuilder ();
 			for (int i = 0; i < text.Length; i++) {

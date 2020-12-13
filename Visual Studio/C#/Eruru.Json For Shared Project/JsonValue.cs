@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
+using Eruru.TextTokenizer;
 
 namespace Eruru.Json {
 
@@ -18,7 +19,7 @@ namespace Eruru.Json {
 					case JsonValueType.Null:
 						_Value = null;
 						break;
-					case JsonValueType.Long:
+					case JsonValueType.Integer:
 						_Value = ToLong ();
 						break;
 					case JsonValueType.Decimal:
@@ -79,7 +80,7 @@ namespace Eruru.Json {
 			get => ToByte ();
 
 			set {
-				_Type = JsonValueType.Long;
+				_Type = JsonValueType.Integer;
 				_Value = value;
 			}
 
@@ -89,7 +90,7 @@ namespace Eruru.Json {
 			get => ToUShort ();
 
 			set {
-				_Type = JsonValueType.Long;
+				_Type = JsonValueType.Integer;
 				_Value = value;
 			}
 
@@ -99,7 +100,7 @@ namespace Eruru.Json {
 			get => ToUInt ();
 
 			set {
-				_Type = JsonValueType.Long;
+				_Type = JsonValueType.Integer;
 				_Value = value;
 			}
 
@@ -109,7 +110,7 @@ namespace Eruru.Json {
 			get => ToULong ();
 
 			set {
-				_Type = JsonValueType.Long;
+				_Type = JsonValueType.Integer;
 				_Value = value;
 			}
 
@@ -119,7 +120,7 @@ namespace Eruru.Json {
 			get => ToSByte ();
 
 			set {
-				_Type = JsonValueType.Long;
+				_Type = JsonValueType.Integer;
 				_Value = value;
 			}
 
@@ -129,7 +130,7 @@ namespace Eruru.Json {
 			get => ToShort ();
 
 			set {
-				_Type = JsonValueType.Long;
+				_Type = JsonValueType.Integer;
 				_Value = value;
 			}
 
@@ -139,7 +140,7 @@ namespace Eruru.Json {
 			get => ToInt ();
 
 			set {
-				_Type = JsonValueType.Long;
+				_Type = JsonValueType.Integer;
 				_Value = value;
 			}
 
@@ -149,7 +150,7 @@ namespace Eruru.Json {
 			get => ToLong ();
 
 			set {
-				_Type = JsonValueType.Long;
+				_Type = JsonValueType.Integer;
 				_Value = value;
 			}
 
@@ -312,21 +313,21 @@ namespace Eruru.Json {
 		}
 
 		public static JsonValue Parse (string text, JsonConfig config = null) {
-			if (JsonApi.IsNullOrWhiteSpace (text)) {
-				throw new ArgumentException ($"“{nameof (text)}”不能是 Null 或为空", nameof (text));
+			if (text is null) {
+				throw new ArgumentNullException (nameof (text));
 			}
 			return Load (new StringReader (text), null, config);
 		}
 		public static JsonValue Parse (string text, JsonValue value, JsonConfig config = null) {
-			if (JsonApi.IsNullOrWhiteSpace (text)) {
-				throw new ArgumentException ($"“{nameof (text)}”不能是 Null 或为空", nameof (text));
+			if (text is null) {
+				throw new ArgumentNullException (nameof (text));
 			}
 			return Load (new StringReader (text), value, config);
 		}
 
 		public static JsonValue Load (string path, JsonConfig config = null) {
 			if (JsonApi.IsNullOrWhiteSpace (path)) {
-				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或为空", nameof (path));
+				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或空白", nameof (path));
 			}
 			return Load (new StreamReader (path), null, config);
 		}
@@ -338,7 +339,7 @@ namespace Eruru.Json {
 		}
 		public static JsonValue Load (string path, JsonValue value, JsonConfig config = null) {
 			if (JsonApi.IsNullOrWhiteSpace (path)) {
-				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或为空", nameof (path));
+				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或空白", nameof (path));
 			}
 			return Load (new StreamReader (path), value, config);
 		}
@@ -464,8 +465,8 @@ namespace Eruru.Json {
 		}
 
 		public JsonValue Select (string path) {
-			if (JsonApi.IsNullOrWhiteSpace (path)) {
-				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或为空", nameof (path));
+			if (path is null) {
+				throw new ArgumentNullException (nameof (path));
 			}
 			return Select (this, path);
 		}
@@ -474,11 +475,21 @@ namespace Eruru.Json {
 			if (value is null) {
 				throw new ArgumentNullException (nameof (value));
 			}
-			if (JsonApi.IsNullOrWhiteSpace (path)) {
-				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或为空", nameof (path));
+			if (path is null) {
+				throw new ArgumentNullException (nameof (path));
 			}
 			JsonValue current = value;
-			using (JsonTextReader reader = new JsonTextReader (new StringReader (path))) {
+			using (var reader = new TextTokenizer<JsonTokenType> (
+				new StringReader (path),
+				JsonTokenType.Unknown,
+				JsonTokenType.Integer,
+				JsonTokenType.Decimal,
+				JsonTokenType.String
+			) {
+				{ JsonKeyword.Dot, JsonTokenType.Dot },
+				{ JsonKeyword.LeftBracket, JsonTokenType.LeftBracket },
+				{ JsonKeyword.RightBracket, JsonTokenType.RightBracket }
+			}) {
 				while (reader.MoveNext ()) {
 					switch (reader.Current.Type) {
 						case JsonTokenType.Unknown:
@@ -487,15 +498,23 @@ namespace Eruru.Json {
 								reader.MoveNext ();
 							}
 							current = current[Convert.ToString (reader.Current.Value)];
-							break;
+							continue;
 						case JsonTokenType.LeftBracket:
 							reader.MoveNext ();
-							current = current[Convert.ToInt32 (reader.Current.Value)];
+							switch (reader.Current.Type) {
+								case JsonTokenType.Integer:
+									current = current[Convert.ToInt32 (reader.Current.Value)];
+									break;
+								default:
+									throw new JsonTextReaderException (reader.Buffer, reader.Current, "整数");
+							}
 							reader.MoveNext ();
-							break;
-						default:
-							throw new JsonTextReaderException (reader.Buffer, reader.Current, "键名", JsonKeyword.Dot, JsonKeyword.LeftBracket);
+							if (reader.Current.Type != JsonTokenType.RightBracket) {
+								throw new JsonTextReaderException (reader.Buffer, reader.Current, JsonKeyword.RightBracket);
+							}
+							continue;
 					}
+					throw new JsonTextReaderException (reader.Buffer, reader.Current, "键名", JsonKeyword.Dot, JsonKeyword.LeftBracket);
 				}
 			}
 			return current;
@@ -537,16 +556,19 @@ namespace Eruru.Json {
 				switch (valueType) {
 					case JsonValueType.Null:
 						return Value == obj;
-					case JsonValueType.Long:
+					case JsonValueType.Integer:
 						return ToLong ().Equals (Convert.ToInt64 (obj));
 					case JsonValueType.Decimal:
 						return ToDecimal ().Equals (Convert.ToDecimal (obj));
 					case JsonValueType.Bool:
-						return ToBool ().Equals (Convert.ToBoolean (obj));
+						return ToBool ().Equals ((bool)obj);
 					case JsonValueType.String:
-						return ToString ().Equals (Convert.ToString (obj));
+						if (obj is char character) {
+							return ToChar ().Equals (character);
+						}
+						return ToString ().Equals ((string)obj);
 					case JsonValueType.DateTime:
-						return ToDateTime ().Equals (Convert.ToDateTime (obj));
+						return ToDateTime ().Equals ((DateTime)obj);
 				}
 			}
 			return false;
@@ -2267,16 +2289,19 @@ namespace Eruru.Json {
 			}
 			if (JsonApi.TryGetValueType (obj, out JsonValueType valueType)) {
 				switch (valueType) {
-					case JsonValueType.Long:
+					case JsonValueType.Integer:
 						return ToLong ().CompareTo (Convert.ToInt64 (obj));
 					case JsonValueType.Decimal:
 						return ToDecimal ().CompareTo (Convert.ToDecimal (obj));
 					case JsonValueType.Bool:
-						return ToBool ().CompareTo (Convert.ToBoolean (obj));
+						return ToBool ().CompareTo ((bool)obj);
 					case JsonValueType.String:
-						return ToString ().CompareTo (Convert.ToString (obj));
+						if (obj is char character) {
+							return ToChar ().CompareTo (character);
+						}
+						return ToString ().CompareTo ((string)obj);
 					case JsonValueType.DateTime:
-						return ToDateTime ().CompareTo (Convert.ToDateTime (obj));
+						return ToDateTime ().CompareTo ((DateTime)obj);
 				}
 			}
 			return 0;
@@ -2304,38 +2329,48 @@ namespace Eruru.Json {
 
 		public JsonValue this[string name] {
 
-			get => GetObject ()[name ?? throw new ArgumentException ($"“{nameof (name)}”不能是 Null 或为空", nameof (name))];
+			get {
+				if (name is null) {
+					throw new ArgumentNullException (nameof (name));
+				}
+				return GetObject ()[name];
+			}
 
-			set => GetObject ()[name ?? throw new ArgumentException ($"“{nameof (name)}”不能是 Null 或为空", nameof (name))] = value;
+			set {
+				if (name is null) {
+					throw new ArgumentNullException (nameof (name));
+				}
+				GetObject ()[name] = value;
+			}
 
 		}
 
 		public JsonKey Add (string name) {
-			if (JsonApi.IsNullOrWhiteSpace (name)) {
-				throw new ArgumentException ($"“{nameof (name)}”不能是 Null 或为空", nameof (name));
+			if (name is null) {
+				throw new ArgumentNullException (nameof (name));
 			}
 			return GetObject ().Add (name);
 		}
 		public JsonKey Add (string name, object value) {
-			if (JsonApi.IsNullOrWhiteSpace (name)) {
-				throw new ArgumentException ($"“{nameof (name)}”不能是 Null 或为空", nameof (name));
+			if (name is null) {
+				throw new ArgumentNullException (nameof (name));
 			}
 			return GetObject ().Add (name, value);
 		}
 
 		public JsonKey Get (string name) {
-			if (JsonApi.IsNullOrWhiteSpace (name)) {
-				throw new ArgumentException ($"“{nameof (name)}”不能是 Null 或为空", nameof (name));
+			if (name is null) {
+				throw new ArgumentNullException (nameof (name));
 			}
 			return GetObject ().Add (name);
 		}
 
 		public JsonKey Rename (string oldName, string newName) {
-			if (JsonApi.IsNullOrWhiteSpace (oldName)) {
-				throw new ArgumentException ($"“{nameof (oldName)}”不能是 Null 或为空", nameof (oldName));
+			if (oldName is null) {
+				throw new ArgumentNullException (nameof (oldName));
 			}
-			if (JsonApi.IsNullOrWhiteSpace (newName)) {
-				throw new ArgumentException ($"“{nameof (newName)}”不能是 Null 或为空", nameof (newName));
+			if (newName is null) {
+				throw new ArgumentNullException (nameof (newName));
 			}
 			return GetObject ().Rename (oldName, newName);
 		}

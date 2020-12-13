@@ -36,7 +36,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)JsonTextWriterStack.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonTextWriterStage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonTextWriter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)JsonToken.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonTextReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonTextReaderException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonTokenType.cs" />

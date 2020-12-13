@@ -1,5 +1,4 @@
 ﻿using System;
-using Eruru.Json;
 
 namespace ConsoleApp1 {
 
@@ -7,7 +6,6 @@ namespace ConsoleApp1 {
 
 		static void Main (string[] args) {
 			Console.Title = nameof (ConsoleApp1);
-			JsonValue.Parse ("     \t\t\t\t");
 			Console.ReadLine ();
 		}
 

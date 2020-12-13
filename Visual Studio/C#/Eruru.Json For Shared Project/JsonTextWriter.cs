@@ -60,7 +60,7 @@ namespace Eruru.Json {
 				case JsonValueType.Null:
 					TextWriter.Write (JsonKeyword.Null);
 					break;
-				case JsonValueType.Long:
+				case JsonValueType.Integer:
 					TextWriter.Write (value);
 					break;
 				case JsonValueType.Decimal:
@@ -73,7 +73,7 @@ namespace Eruru.Json {
 					TextWriter.Write ((bool)value ? JsonKeyword.True : JsonKeyword.False);
 					break;
 				case JsonValueType.String:
-					WriteString (JsonApi.Unescape (value.ToString ()));
+					WriteString (JsonApi.Unescape ((string)value));
 					break;
 				case JsonValueType.DateTime:
 					DateTime dateTime = (DateTime)value;

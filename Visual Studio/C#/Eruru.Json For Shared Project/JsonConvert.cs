@@ -174,8 +174,8 @@ namespace Eruru.Json {
 		/// <param name="config">配置实例（为空时使用JsonConfig.Default）</param>
 		/// <returns>对象实例</returns>
 		public static T Deserialize<T> (string text, JsonConfig config = null) {
-			if (JsonApi.IsNullOrWhiteSpace (text)) {
-				throw new ArgumentException ($"“{nameof (text)}”不能为 Null 或空白", nameof (text));
+			if (text is null) {
+				throw new ArgumentNullException (nameof (text));
 			}
 			using (JsonTextReader reader = new JsonTextReader (new StringReader (text), config)) {
 				return new JsonDeserializer (reader, config).BuildValue<T> ();
@@ -268,8 +268,8 @@ namespace Eruru.Json {
 		/// <param name="config">配置实例（为空时使用JsonConfig.Default）</param>
 		/// <returns>对象实例</returns>
 		public static T Deserialize<T> (string text, T instance, JsonConfig config = null) {
-			if (JsonApi.IsNullOrWhiteSpace (text)) {
-				throw new ArgumentException ($"“{nameof (text)}”不能为 Null 或空白", nameof (text));
+			if (text is null) {
+				throw new ArgumentNullException (nameof (text));
 			}
 			using (JsonTextReader reader = new JsonTextReader (new StringReader (text), config)) {
 				return new JsonDeserializer (reader, config).BuildValue<T> (instance);
