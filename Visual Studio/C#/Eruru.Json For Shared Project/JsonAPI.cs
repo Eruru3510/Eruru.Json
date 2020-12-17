@@ -16,7 +16,6 @@ namespace Eruru.Json {
 		static readonly BindingFlags BindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 		static readonly KeyValuePair<char, char>[] Escapes = new KeyValuePair<char, char>[] {
 			new KeyValuePair<char, char> ('\\', '\\'),
-			new KeyValuePair<char, char> ('\'', '\''),
 			new KeyValuePair<char, char> ('"', '"'),
 			new KeyValuePair<char, char> ('r', '\r'),
 			new KeyValuePair<char, char> ('n', '\n'),

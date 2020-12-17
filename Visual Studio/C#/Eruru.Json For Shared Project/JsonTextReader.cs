@@ -10,6 +10,7 @@ namespace Eruru.Json {
 		readonly JsonConfig Config;
 
 		public JsonTextReader (TextReader textReader, JsonConfig config = null) : base (
+			JsonTokenType.End,
 			JsonTokenType.Unknown,
 			JsonTokenType.Integer,
 			JsonTokenType.Decimal,

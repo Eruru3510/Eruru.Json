@@ -2,6 +2,7 @@
 
 	public enum JsonTokenType {
 
+		End,
 		Unknown,
 		Null,
 		Decimal,

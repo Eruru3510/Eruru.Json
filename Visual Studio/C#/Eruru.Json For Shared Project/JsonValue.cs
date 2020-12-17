@@ -481,7 +481,8 @@ namespace Eruru.Json {
 			JsonValue current = value;
 			using (var reader = new TextTokenizer<JsonTokenType> (
 				new StringReader (path),
-				JsonTokenType.Unknown,
+				JsonTokenType.End,
+				JsonTokenType.String,
 				JsonTokenType.Integer,
 				JsonTokenType.Decimal,
 				JsonTokenType.String
@@ -492,7 +493,7 @@ namespace Eruru.Json {
 			}) {
 				while (reader.MoveNext ()) {
 					switch (reader.Current.Type) {
-						case JsonTokenType.Unknown:
+						case JsonTokenType.String:
 						case JsonTokenType.Dot:
 							if (reader.Current.Type == JsonTokenType.Dot) {
 								reader.MoveNext ();
