@@ -123,8 +123,8 @@ namespace Eruru.Json {
 			if (instance is null) {
 				throw new ArgumentNullException (nameof (instance));
 			}
-			if (IsNullOrWhiteSpace (message)) {
-				throw new ArgumentException ($"“{nameof (message)}”不能为 Null 或空白", nameof (message));
+			if (message is null) {
+				throw new ArgumentNullException (nameof (message));
 			}
 			typeof (Exception).GetField ("_message", BindingFlags).SetValue (instance, message);
 		}

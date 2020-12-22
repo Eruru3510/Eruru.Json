@@ -27,9 +27,9 @@ namespace Eruru.Json {
 			Add (JsonKeyword.RightBracket, JsonTokenType.RightBracket);
 			Add (JsonKeyword.Comma, JsonTokenType.Comma);
 			Add (JsonKeyword.Semicolon, JsonTokenType.Semicolon);
-			Add (JsonKeyword.Null, JsonTokenType.Null);
-			Add (JsonKeyword.True, JsonTokenType.True);
-			Add (JsonKeyword.False, JsonTokenType.False);
+			Add (JsonKeyword.Null, JsonTokenType.Null, null);
+			Add (JsonKeyword.True, JsonTokenType.Bool, true);
+			Add (JsonKeyword.False, JsonTokenType.Bool, false);
 		}
 
 		#region IJsonReader
@@ -49,7 +49,7 @@ namespace Eruru.Json {
 					value?.Invoke (Current.Value, JsonValueType.Decimal);
 					return;
 				case JsonTokenType.String: {
-					string text = (string)Current.Value;
+					string text = Current.String;
 					if (DateTime.TryParse (text, out DateTime dateTime)) {
 						value?.Invoke (dateTime, JsonValueType.DateTime);
 						return;
@@ -58,13 +58,10 @@ namespace Eruru.Json {
 					return;
 				}
 				case JsonTokenType.Null:
-					value?.Invoke (null, JsonValueType.Null);
+					value?.Invoke (Current.Value, JsonValueType.Null);
 					return;
-				case JsonTokenType.True:
-					value?.Invoke (true, JsonValueType.Bool);
-					return;
-				case JsonTokenType.False:
-					value?.Invoke (false, JsonValueType.Bool);
+				case JsonTokenType.Bool:
+					value?.Invoke (Current.Value, JsonValueType.Bool);
 					return;
 				case JsonTokenType.LeftBracket:
 					readArray ();

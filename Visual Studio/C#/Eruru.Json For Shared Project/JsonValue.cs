@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
-using Eruru.TextTokenizer;
 
 namespace Eruru.Json {
 
@@ -326,8 +325,8 @@ namespace Eruru.Json {
 		}
 
 		public static JsonValue Load (string path, JsonConfig config = null) {
-			if (JsonApi.IsNullOrWhiteSpace (path)) {
-				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或空白", nameof (path));
+			if (path is null) {
+				throw new ArgumentNullException (nameof (path));
 			}
 			return Load (new StreamReader (path), null, config);
 		}
@@ -338,8 +337,8 @@ namespace Eruru.Json {
 			return Load (textReader, null, config);
 		}
 		public static JsonValue Load (string path, JsonValue value, JsonConfig config = null) {
-			if (JsonApi.IsNullOrWhiteSpace (path)) {
-				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或空白", nameof (path));
+			if (path is null) {
+				throw new ArgumentNullException (nameof (path));
 			}
 			return Load (new StreamReader (path), value, config);
 		}
@@ -468,57 +467,9 @@ namespace Eruru.Json {
 			if (path is null) {
 				throw new ArgumentNullException (nameof (path));
 			}
-			return Select (this, path);
-		}
-
-		public static JsonValue Select (JsonValue value, string path) {
-			if (value is null) {
-				throw new ArgumentNullException (nameof (value));
+			using (JsonSelector selector = new JsonSelector (this)) {
+				return selector.Select (path);
 			}
-			if (path is null) {
-				throw new ArgumentNullException (nameof (path));
-			}
-			JsonValue current = value;
-			using (var reader = new TextTokenizer<JsonTokenType> (
-				new StringReader (path),
-				JsonTokenType.End,
-				JsonTokenType.String,
-				JsonTokenType.Integer,
-				JsonTokenType.Decimal,
-				JsonTokenType.String
-			) {
-				{ JsonKeyword.Dot, JsonTokenType.Dot },
-				{ JsonKeyword.LeftBracket, JsonTokenType.LeftBracket },
-				{ JsonKeyword.RightBracket, JsonTokenType.RightBracket }
-			}) {
-				while (reader.MoveNext ()) {
-					switch (reader.Current.Type) {
-						case JsonTokenType.String:
-						case JsonTokenType.Dot:
-							if (reader.Current.Type == JsonTokenType.Dot) {
-								reader.MoveNext ();
-							}
-							current = current[Convert.ToString (reader.Current.Value)];
-							continue;
-						case JsonTokenType.LeftBracket:
-							reader.MoveNext ();
-							switch (reader.Current.Type) {
-								case JsonTokenType.Integer:
-									current = current[Convert.ToInt32 (reader.Current.Value)];
-									break;
-								default:
-									throw new JsonTextReaderException (reader.Buffer, reader.Current, "整数");
-							}
-							reader.MoveNext ();
-							if (reader.Current.Type != JsonTokenType.RightBracket) {
-								throw new JsonTextReaderException (reader.Buffer, reader.Current, JsonKeyword.RightBracket);
-							}
-							continue;
-					}
-					throw new JsonTextReaderException (reader.Buffer, reader.Current, "键名", JsonKeyword.Dot, JsonKeyword.LeftBracket);
-				}
-			}
-			return current;
 		}
 
 		JsonArray GetArray () {
@@ -2172,8 +2123,8 @@ namespace Eruru.Json {
 			}
 		}
 		public void Serialize (string path, JsonConfig config = null) {
-			if (JsonApi.IsNullOrWhiteSpace (path)) {
-				throw new ArgumentException ($"“{nameof (path)}”不能为 Null 或空白", nameof (path));
+			if (path is null) {
+				throw new ArgumentNullException (nameof (path));
 			}
 			Serialize (new StreamWriter (path), config);
 		}
@@ -2192,8 +2143,8 @@ namespace Eruru.Json {
 			}
 		}
 		public void Serialize (string path, bool compress, JsonConfig config = null) {
-			if (JsonApi.IsNullOrWhiteSpace (path)) {
-				throw new ArgumentException ($"“{nameof (path)}”不能为 Null 或空白", nameof (path));
+			if (path is null) {
+				throw new ArgumentNullException (nameof (path));
 			}
 			Serialize (new StreamWriter (path), compress, config);
 		}

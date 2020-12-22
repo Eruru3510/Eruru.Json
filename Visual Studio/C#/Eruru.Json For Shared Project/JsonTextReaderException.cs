@@ -8,14 +8,11 @@ namespace Eruru.Json {
 	public class JsonTextReaderException : Exception {
 
 		public JsonTextReaderException (string message, Queue<char> buffer, TextTokenizerToken<JsonTokenType> token) {
-			if (JsonApi.IsNullOrWhiteSpace (message)) {
-				throw new ArgumentException ($"“{nameof (message)}”不能为 Null 或空白", nameof (message));
+			if (message is null) {
+				throw new ArgumentNullException (nameof (message));
 			}
 			if (buffer is null) {
 				throw new ArgumentNullException (nameof (buffer));
-			}
-			if (JsonApi.IsNullOrWhiteSpace (message)) {
-				throw new ArgumentException ($"“{nameof (message)}”不能为 Null 或空白", nameof (message));
 			}
 			StringBuilder stringBuilder = new StringBuilder ();
 			stringBuilder.AppendLine (message);

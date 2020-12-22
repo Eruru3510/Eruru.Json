@@ -42,8 +42,8 @@ namespace Eruru.Json {
 		}
 
 		public static JsonArray Load (string path, JsonConfig config = null) {
-			if (JsonApi.IsNullOrWhiteSpace (path)) {
-				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或空白", nameof (path));
+			if (path is null) {
+				throw new ArgumentNullException (nameof (path));
 			}
 			return Load (new StreamReader (path), null, config);
 		}
@@ -54,8 +54,8 @@ namespace Eruru.Json {
 			return Load (textReader, null, config);
 		}
 		public static JsonArray Load (string path, JsonArray array, JsonConfig config = null) {
-			if (JsonApi.IsNullOrWhiteSpace (path)) {
-				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或空白", nameof (path));
+			if (path is null) {
+				throw new ArgumentNullException (nameof (path));
 			}
 			return Load (new StreamReader (path), array, config);
 		}
@@ -69,10 +69,12 @@ namespace Eruru.Json {
 		}
 
 		public JsonValue Select (string path) {
-			if (JsonApi.IsNullOrWhiteSpace (path)) {
-				throw new ArgumentException ($"“{nameof (path)}”不能是 Null 或空白", nameof (path));
+			if (path is null) {
+				throw new ArgumentNullException (nameof (path));
 			}
-			return JsonValue.Select (this, path);
+			using (JsonSelector selector = new JsonSelector (this)) {
+				return selector.Select (path);
+			}
 		}
 
 		public override string ToString () {
@@ -102,8 +104,8 @@ namespace Eruru.Json {
 			}
 		}
 		public void Serialize (string path, JsonConfig config = null) {
-			if (JsonApi.IsNullOrWhiteSpace (path)) {
-				throw new ArgumentException ($"“{nameof (path)}”不能为 Null 或空白", nameof (path));
+			if (path is null) {
+				throw new ArgumentNullException (nameof (path));
 			}
 			Serialize (new StreamWriter (path), config);
 		}
@@ -122,8 +124,8 @@ namespace Eruru.Json {
 			}
 		}
 		public void Serialize (string path, bool compress, JsonConfig config = null) {
-			if (JsonApi.IsNullOrWhiteSpace (path)) {
-				throw new ArgumentException ($"“{nameof (path)}”不能为 Null 或空白", nameof (path));
+			if (path is null) {
+				throw new ArgumentNullException (nameof (path));
 			}
 			Serialize (new StreamWriter (path), compress, config);
 		}

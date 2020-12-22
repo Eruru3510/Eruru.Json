@@ -44,7 +44,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Eruru.TextTokenizer_For_.NET_Framework_2.0, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Eruru.TextTokenizer_For_.NET_Framework_2.0.1.0.0.6\lib\net20\Eruru.TextTokenizer_For_.NET_Framework_2.0.dll</HintPath>
+      <HintPath>..\packages\Eruru.TextTokenizer_For_.NET_Framework_2.0.1.0.0.8\lib\net20\Eruru.TextTokenizer_For_.NET_Framework_2.0.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />

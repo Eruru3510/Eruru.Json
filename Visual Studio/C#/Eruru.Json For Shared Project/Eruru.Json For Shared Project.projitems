@@ -30,6 +30,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Jsonkeyword.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonObjectType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonSelector.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonSerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonSerializerStack.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonTextBuilder.cs" />
