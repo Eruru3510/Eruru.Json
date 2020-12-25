@@ -1,6 +1,6 @@
 ﻿namespace Eruru.Json {
 
-	public enum JsonTextWriterStage {
+	enum JsonTextWriterStage {
 
 		End = 1 << 0,
 		Value = 1 << 1,

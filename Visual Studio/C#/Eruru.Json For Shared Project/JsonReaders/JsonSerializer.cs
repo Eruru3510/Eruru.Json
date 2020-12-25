@@ -49,6 +49,14 @@ namespace Eruru.Json {
 			if (readObject is null) {
 				throw new ArgumentNullException (nameof (readObject));
 			}
+			if (Stacks.Peek ().ArrayType != JsonArrayType.Unknown) {
+				readArray ();
+				return;
+			}
+			if (Stacks.Peek ().ObjectType != JsonObjectType.Unknown) {
+				readObject ();
+				return;
+			}
 			Stacks.Peek ().IsInitialized = true;
 			if (Stacks.Peek ().Instance is null) {
 				value (ConverterWrite (), JsonValueType.Null);
@@ -142,7 +150,7 @@ namespace Eruru.Json {
 			Initialize (false);
 			switch (Stacks.Peek ().ObjectType) {
 				case JsonObjectType.Class:
-					JsonApi.ForEachMembers (Stacks.Peek ().Type, (memberInfo, fieldInfo, propertyInfo, field) => {
+					JsonApi.ForEachSerializableMembers (Stacks.Peek ().Type, (memberInfo, fieldInfo, propertyInfo, field) => {
 						bool isReaded = false;
 						object instance = null;
 						object Read () {
@@ -159,7 +167,7 @@ namespace Eruru.Json {
 									throw new JsonNotSupportException (memberInfo.MemberType);
 							}
 						}
-						if (!JsonApi.CanSerialize (Config, Read ())) {
+						if (!JsonApi.CanSerializeValue (Read (), Config)) {
 							return;
 						}
 						if (key (field?.Name ?? memberInfo.Name)) {

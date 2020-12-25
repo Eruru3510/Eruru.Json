@@ -14,7 +14,7 @@ namespace Eruru.Json {
 	static class JsonApi {
 
 		static readonly BindingFlags BindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-		static readonly KeyValuePair<char, char>[] Escapes = new KeyValuePair<char, char>[] {
+		static readonly KeyValuePair<char, char>[] Unescapes = new KeyValuePair<char, char>[] {
 			new KeyValuePair<char, char> ('\\', '\\'),
 			new KeyValuePair<char, char> ('"', '"'),
 			new KeyValuePair<char, char> ('r', '\r'),
@@ -32,21 +32,18 @@ namespace Eruru.Json {
 			return (a.GetHashCode () & b.GetHashCode ()) != 0;
 		}
 
-		public static bool TryGetValueType (Type type, out JsonValueType valueType, JsonConfig config = null) {
+		public static bool TryGetValueType (Type type, out JsonValueType valueType, JsonConfig config) {
 			if (type is null) {
 				throw new ArgumentNullException (nameof (type));
 			}
 			if (config is null) {
-				config = JsonConfig.Default;
+				throw new ArgumentNullException (nameof (config));
 			}
 			if (type.IsEnum && config.StringEnum) {
 				valueType = JsonValueType.String;
 				return true;
 			}
 			switch (Type.GetTypeCode (type)) {
-				case TypeCode.DBNull:
-					valueType = JsonValueType.Null;
-					return true;
 				case TypeCode.Byte:
 				case TypeCode.UInt16:
 				case TypeCode.UInt32:
@@ -72,16 +69,18 @@ namespace Eruru.Json {
 				case TypeCode.DateTime:
 					valueType = JsonValueType.DateTime;
 					return true;
+				case TypeCode.DBNull:
+				default:
+					valueType = JsonValueType.Null;
+					return false;
 			}
-			valueType = JsonValueType.Null;
-			return false;
 		}
 		public static bool TryGetValueType (object value, out JsonValueType valueType, JsonConfig config = null) {
 			if (value is null) {
 				valueType = JsonValueType.Null;
 				return true;
 			}
-			return TryGetValueType (value.GetType (), out valueType, config);
+			return TryGetValueType (value.GetType (), out valueType, config ?? JsonConfig.Default);
 		}
 
 		public static bool TryGetArrayType (Type type, out JsonArrayType arrayType) {
@@ -136,7 +135,7 @@ namespace Eruru.Json {
 			return type.GetMembers (BindingFlags);
 		}
 
-		public static void ForEachMembers (Type type, JsonAction<MemberInfo, FieldInfo, PropertyInfo, JsonField> action) {
+		public static void ForEachSerializableMembers (Type type, JsonAction<MemberInfo, FieldInfo, PropertyInfo, JsonField> action) {
 			if (type is null) {
 				throw new ArgumentNullException (nameof (type));
 			}
@@ -144,41 +143,38 @@ namespace Eruru.Json {
 				throw new ArgumentNullException (nameof (action));
 			}
 			foreach (MemberInfo memberInfo in GetMembers (type)) {
-				if (CanSerialize (memberInfo, out FieldInfo fieldInfo, out PropertyInfo propertyInfo, out JsonField field)) {
+				if (CanSerializeMember (memberInfo, out FieldInfo fieldInfo, out PropertyInfo propertyInfo, out JsonField field)) {
 					action (memberInfo, fieldInfo, propertyInfo, field);
 				}
 			}
 		}
 
-		public static bool CanSerialize (MemberInfo memberInfo, out FieldInfo fieldInfo, out PropertyInfo propertyInfo, out JsonField field) {
+		public static bool CanSerializeMember (MemberInfo memberInfo, out FieldInfo fieldInfo, out PropertyInfo propertyInfo, out JsonField field) {
 			if (memberInfo is null) {
 				throw new ArgumentNullException (nameof (memberInfo));
 			}
 			switch (memberInfo.MemberType) {
 				case MemberTypes.Field: {
 					fieldInfo = (FieldInfo)memberInfo;
+					propertyInfo = null;
 					if (GetCustomAttribute<JsonIgnoreField> (memberInfo) != null) {
-						propertyInfo = null;
 						field = null;
 						return false;
 					}
 					field = GetCustomAttribute<JsonField> (memberInfo);
 					if (!fieldInfo.IsPublic && field is null) {
-						propertyInfo = null;
 						return false;
 					}
-					propertyInfo = null;
 					return true;
 				}
 				case MemberTypes.Property: {
 					propertyInfo = (PropertyInfo)memberInfo;
+					fieldInfo = null;
 					if (!propertyInfo.CanRead || !propertyInfo.CanWrite || GetCustomAttribute<JsonIgnoreField> (memberInfo) != null) {
-						fieldInfo = null;
 						field = null;
 						return false;
 					}
 					field = GetCustomAttribute<JsonField> (memberInfo);
-					fieldInfo = null;
 					return true;
 				}
 				default:
@@ -189,21 +185,21 @@ namespace Eruru.Json {
 			}
 		}
 
-		public static bool CanSerialize (JsonConfig config, object instance) {
+		public static bool CanSerializeValue (object value, JsonConfig config) {
+			if (config is null) {
+				throw new ArgumentNullException (nameof (config));
+			}
 			if (config.IgnoreNullValue) {
-				if (instance is null) {
+				if (value is null) {
 					return false;
 				}
 			}
 			if (config.IgnoreDefaultValue) {
-				if (instance is null) {
+				if (value is null) {
 					return false;
 				}
-				Type type = instance.GetType ();
-				if (type.IsValueType) {
-					if (Equals (instance, Activator.CreateInstance (type))) {
-						return false;
-					}
+				if (Equals (value, GetDefaultValue (value.GetType ()))) {
+					return false;
 				}
 			}
 			return true;
@@ -221,19 +217,30 @@ namespace Eruru.Json {
 			if (type is null) {
 				return value;
 			}
-			if (value is null) {
-				return default;
-			}
-			if (type.IsEnum) {
-				if (config is null) {
-					config = JsonConfig.Default;
+			try {
+				if (type.IsEnum) {
+					if (config is null) {
+						config = JsonConfig.Default;
+					}
+					if (config.StringEnum) {
+						return Enum.Parse (type, value?.ToString (), config.IgnoreCase);
+					}
+					return Enum.ToObject (type, Convert.ChangeType (value, TypeCode.Int32));
 				}
-				if (config.StringEnum) {
-					return Enum.Parse (type, value.ToString (), config.IgnoreCase);
-				}
-				return Enum.ToObject (type, Convert.ChangeType (value, TypeCode.Int32));
+				return Convert.ChangeType (value, type);
+			} catch {
+				return GetDefaultValue (type);
 			}
-			return Convert.ChangeType (value, type);
+		}
+
+		public static object GetDefaultValue (Type type) {
+			if (type is null) {
+				throw new ArgumentNullException (nameof (type));
+			}
+			if (type.IsValueType) {
+				return CreateInstance (type);
+			}
+			return null;
 		}
 
 		public static object CreateInstance (Type type) {
@@ -250,22 +257,22 @@ namespace Eruru.Json {
 			if (config is null) {
 				throw new ArgumentNullException (nameof (config));
 			}
-			return string.Equals (a, b, GetStringComparison (config));
+			return string.Equals (a, b, config.IgnoreCase ? StringComparison.CurrentCultureIgnoreCase : StringComparison.CurrentCulture);
 		}
 
-		public static string Unescape (string text) {
+		public static string CancelUnescape (string text) {
 			if (text is null) {
 				throw new ArgumentNullException (nameof (text));
 			}
 			StringBuilder stringBuilder = new StringBuilder ();
 			for (int i = 0; i < text.Length; i++) {
-				int index = Array.FindIndex (Escapes, escape => escape.Value == text[i]);
-				if (index > -1) {
-					stringBuilder.Append (JsonKeyword.Backslash);
-					stringBuilder.Append (Escapes[index].Key);
+				int index = Array.FindIndex (Unescapes, escape => escape.Value == text[i]);
+				if (index == -1) {
+					stringBuilder.Append (text[i]);
 					continue;
 				}
-				stringBuilder.Append (text[i]);
+				stringBuilder.Append (JsonKeyword.Backslash);
+				stringBuilder.Append (Unescapes[index].Key);
 			}
 			return stringBuilder.ToString ();
 		}
@@ -283,13 +290,6 @@ namespace Eruru.Json {
 				}
 			}
 			return true;
-		}
-
-		static StringComparison GetStringComparison (JsonConfig config) {
-			if (config is null) {
-				throw new ArgumentNullException (nameof (config));
-			}
-			return config.IgnoreCase ? StringComparison.CurrentCultureIgnoreCase : StringComparison.CurrentCulture;
 		}
 
 	}

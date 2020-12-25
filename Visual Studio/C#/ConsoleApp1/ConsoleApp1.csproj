@@ -57,9 +57,9 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Eruru.Json For .NET Framework 4\Eruru.Jso_ For_.NET_Framework_4.csproj">
+    <ProjectReference Include="..\Eruru.Json For .NET Framework 4\Eruru.Json_ For_.NET_Framework_4.csproj">
       <Project>{710e0e38-ad9f-40d9-bc01-e7260dfe3349}</Project>
-      <Name>Eruru.Jso_ For_.NET_Framework_4</Name>
+      <Name>Eruru.Json_ For_.NET_Framework_4</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

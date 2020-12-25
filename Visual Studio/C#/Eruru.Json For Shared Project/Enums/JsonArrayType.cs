@@ -1,6 +1,6 @@
 ﻿namespace Eruru.Json {
 
-	public enum JsonArrayType {
+	enum JsonArrayType {
 
 		Unknown,
 		Array,

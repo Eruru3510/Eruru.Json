@@ -48,7 +48,7 @@ namespace Eruru.Json {
 						List<int> bounds = new List<int> ();
 						MeasureArray (jsonArray, ref bounds);
 						if (bounds.Count < type.GetArrayRank ()) {
-							throw new JsonException ("Array rank mismatch");
+							throw new JsonException ("数组维数不匹配");
 						}
 						Type elementType = type.GetElementType ();
 						Array array = instance as Array;
@@ -148,7 +148,7 @@ namespace Eruru.Json {
 						JsonField field = null;
 						Reader.ReadObject (name => {
 							foreach (MemberInfo current in JsonApi.GetMembers (type)) {
-								if (JsonApi.CanSerialize (current, out fieldInfo, out propertyInfo, out field)) {
+								if (JsonApi.CanSerializeMember (current, out fieldInfo, out propertyInfo, out field)) {
 									if (JsonApi.Equals (name, field?.Name ?? current.Name, Config)) {
 										memberInfo = current;
 										return true;
@@ -168,7 +168,7 @@ namespace Eruru.Json {
 								default:
 									throw new JsonNotSupportException (memberInfo.MemberType);
 							}
-							if (!JsonApi.CanSerialize (Config, value)) {
+							if (!JsonApi.CanSerializeValue (value, Config)) {
 								return;
 							}
 							if (memberInfo.MemberType == MemberTypes.Property) {

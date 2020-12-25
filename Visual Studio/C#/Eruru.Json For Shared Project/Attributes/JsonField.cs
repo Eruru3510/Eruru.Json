@@ -38,7 +38,7 @@ namespace Eruru.Json {
 			if (converters is null) {
 				throw new ArgumentNullException (nameof (converters));
 			}
-			Name = name;
+			Name = name ?? throw new ArgumentNullException (nameof (name));
 			SetConverters (converters);
 		}
 

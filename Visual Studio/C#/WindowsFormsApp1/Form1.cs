@@ -14,15 +14,23 @@ namespace WindowsFormsApp1 {
 			Parse ();
 		}
 
-		private void textBox1_TextChanged (object sender, EventArgs e) {
+		private void TextBox_Input_TextChanged (object sender, EventArgs e) {
 			Parse ();
+		}
+
+		private void Form1_Resize (object sender, EventArgs e) {
+			TextBox_Input.Width = ClientSize.Width / 2 - 10;
+			TextBox_Input.Height = ClientSize.Height - 10;
+			TextBox_Output.Left = TextBox_Input.Width + 10;
+			TextBox_Output.Width = TextBox_Input.Width;
+			TextBox_Output.Height = TextBox_Input.Height;
 		}
 
 		void Parse () {
 			try {
-				textBox2.Text = JsonValue.Parse (textBox1.Text).Serialize (false);
+				TextBox_Output.Text = JsonValue.Parse (TextBox_Input.Text).Serialize (false);
 			} catch (Exception exception) {
-				textBox2.Text = exception.ToString ();
+				TextBox_Output.Text = exception.ToString ();
 			}
 		}
 

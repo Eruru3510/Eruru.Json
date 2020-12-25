@@ -13,7 +13,7 @@
 	<Import Project="..\Eruru.Json For Shared Project\Eruru.Json For Shared Project.projitems" Label="Shared" />
 
 	<ItemGroup>
-	  <PackageReference Include="Eruru.TextTokenizer_For_.NET_Standard_2.0" Version="1.0.0.7" />
+	  <PackageReference Include="Eruru.TextTokenizer_For_.NET_Standard_2.0" Version="1.0.0.9" />
 	</ItemGroup>
 
 </Project>

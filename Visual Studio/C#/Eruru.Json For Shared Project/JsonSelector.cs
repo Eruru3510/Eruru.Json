@@ -6,7 +6,7 @@ namespace Eruru.Json {
 
 	public class JsonSelector : TextTokenizer<JsonTokenType> {
 
-		JsonValue Root;
+		readonly JsonValue Root;
 
 		public JsonSelector (JsonValue root) : base (
 			JsonTokenType.End,
@@ -43,11 +43,11 @@ namespace Eruru.Json {
 						Value = Value[Current.Int];
 						MoveNext ();
 						if (Current.Type != JsonTokenType.RightBracket) {
-							throw new JsonTextReaderException (Buffer, Current, JsonKeyword.RightBracket);
+							throw new JsonTextReaderException (this, JsonKeyword.RightBracket);
 						}
 						break;
 					default:
-						throw new JsonTextReaderException (Buffer, Current, "键名", JsonKeyword.Dot, JsonKeyword.LeftBracket);
+						throw new JsonTextReaderException (this, "键名", JsonKeyword.Dot, JsonKeyword.LeftBracket);
 				}
 			}
 			return Value;

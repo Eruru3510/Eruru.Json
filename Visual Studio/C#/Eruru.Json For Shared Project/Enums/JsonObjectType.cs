@@ -1,6 +1,6 @@
 ﻿namespace Eruru.Json {
 
-	public enum JsonObjectType {
+	enum JsonObjectType {
 
 		Unknown,
 		Class

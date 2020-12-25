@@ -73,7 +73,7 @@ namespace Eruru.Json {
 					TextWriter.Write ((bool)value ? JsonKeyword.True : JsonKeyword.False);
 					break;
 				case JsonValueType.String:
-					WriteString (JsonApi.Unescape ((string)value));
+					WriteString (JsonApi.CancelUnescape ((string)value));
 					break;
 				case JsonValueType.DateTime:
 					DateTime dateTime = (DateTime)value;
@@ -121,13 +121,13 @@ namespace Eruru.Json {
 
 		void CheckEnd () {
 			if (Stacks.Peek ().Stage == JsonTextWriterStage.End) {
-				throw new JsonException ("Json is finished");
+				throw new JsonException ("Json已写完");
 			}
 		}
 
 		void Check () {
 			if (Stacks.Peek ().Stage != JsonTextWriterStage.End) {
-				throw new JsonException ($"Json is not finished{Environment.NewLine}{TextWriter}");
+				throw new JsonException ($"Json未写完{Environment.NewLine}{TextWriter}");
 			}
 		}
 

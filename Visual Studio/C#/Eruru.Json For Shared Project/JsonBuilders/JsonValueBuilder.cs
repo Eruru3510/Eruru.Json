@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Eruru.Json {
 
@@ -6,6 +7,7 @@ namespace Eruru.Json {
 
 		readonly IJsonReader Reader;
 		readonly JsonConfig Config;
+		readonly Stack<JsonArray> Stacks = new Stack<JsonArray> ();
 
 		public JsonValueBuilder (IJsonReader reader, JsonConfig config = null) {
 			Reader = reader ?? throw new ArgumentNullException (nameof (reader));
@@ -33,20 +35,21 @@ namespace Eruru.Json {
 		}
 
 		public JsonArray BuildArray (JsonArray array = null) {
-			JsonArray currentArray = array;
-			if (currentArray is null) {
-				currentArray = new JsonArray ();
+			if (array is null) {
+				Stacks.Push (new JsonArray ());
+			} else {
+				Stacks.Push (array);
 			}
-			int count = currentArray.Count;
+			int count = Stacks.Peek ().Count;
 			Reader.ReadArray (i => {
 				JsonValue value = null;
 				if (i < count) {
-					value = currentArray.Get (i);
+					value = Stacks.Peek ().Get (i);
 				}
-				currentArray.Add (BuildValue (value));
+				Stacks.Peek ().Add (BuildValue (value));
 			});
-			currentArray.RemoveRange (0, count);
-			return currentArray;
+			Stacks.Peek ().RemoveRange (0, count);
+			return Stacks.Pop ();
 		}
 
 		public JsonObject BuildObject (JsonObject jsonObject = null) {
@@ -58,7 +61,7 @@ namespace Eruru.Json {
 			Reader.ReadObject (name => {
 				keyName = name;
 				return true;
-			}, () => currentObject.Add (keyName, BuildValue ()));
+			}, () => currentObject.Add (keyName, BuildValue (currentObject.Get (keyName))));//todo 待测试复用是否正常
 			return currentObject;
 		}
 

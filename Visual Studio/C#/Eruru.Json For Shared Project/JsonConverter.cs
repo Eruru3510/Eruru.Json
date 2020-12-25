@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace Eruru.Json {
 
-	public class JsonConverter {
+	class JsonConverter {
 
 		public readonly Type BeforeType;
 

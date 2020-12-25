@@ -71,8 +71,7 @@ namespace Eruru.Json {
 					return;
 			}
 			throw new JsonTextReaderException (
-				Buffer,
-				Current,
+				this,
 				JsonKeyword.Null, "整数", "小数", JsonKeyword.True, JsonKeyword.False, "字符串", JsonKeyword.LeftBracket, JsonKeyword.LeftBrace
 			);
 		}
@@ -103,7 +102,7 @@ namespace Eruru.Json {
 			}
 			JsonTokenType start = isArray ? JsonTokenType.LeftBracket : JsonTokenType.LeftBrace;
 			if (Current.Type != start) {
-				throw new JsonTextReaderException (Buffer, Current, isArray ? JsonKeyword.LeftBracket : JsonKeyword.LeftBrace);
+				throw new JsonTextReaderException (this, isArray ? JsonKeyword.LeftBracket : JsonKeyword.LeftBrace);
 			}
 			JsonTokenType end = isArray ? JsonTokenType.RightBracket : JsonTokenType.RightBrace;
 			bool isFirst = true;
@@ -115,19 +114,19 @@ namespace Eruru.Json {
 					isFirst = false;
 				} else {
 					if (Current.Type != JsonTokenType.Comma) {
-						throw new JsonTextReaderException (Buffer, Current, JsonKeyword.Comma);
+						throw new JsonTextReaderException (this, JsonKeyword.Comma);
 					}
 					MoveNext ();
 				}
 				bool needReadValue = true;
 				if (!isArray) {
 					if (Current.Type != JsonTokenType.String) {
-						throw new JsonTextReaderException (Buffer, Current, JsonTokenType.String);
+						throw new JsonTextReaderException (this, "键名");
 					}
 					needReadValue = key ((string)Current.Value);
 					MoveNext ();
 					if (Current.Type != JsonTokenType.Semicolon) {
-						throw new JsonTextReaderException (Buffer, Current, JsonKeyword.Semicolon);
+						throw new JsonTextReaderException (this, JsonKeyword.Semicolon);
 					}
 					MoveNext ();
 				}
@@ -137,7 +136,10 @@ namespace Eruru.Json {
 				}
 				ConsumptionValue ();
 			}
-			throw new JsonTextReaderException (Buffer, Current, isArray ? JsonKeyword.RightBracket : JsonKeyword.RightBrace);
+			if (isFirst) {
+				throw new JsonTextReaderException (this, isArray ? "值" : "键名", isArray ? JsonKeyword.RightBracket : JsonKeyword.RightBrace);
+			}
+			throw new JsonTextReaderException (this, JsonKeyword.Comma, isArray ? JsonKeyword.RightBracket : JsonKeyword.RightBrace);
 		}
 
 		void ConsumptionValue () {

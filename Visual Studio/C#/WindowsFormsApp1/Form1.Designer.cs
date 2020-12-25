@@ -23,60 +23,63 @@
 		/// 使用代码编辑器修改此方法的内容。
 		/// </summary>
 		private void InitializeComponent () {
-			this.textBox1 = new System.Windows.Forms.TextBox ();
-			this.textBox2 = new System.Windows.Forms.TextBox ();
-			this.SuspendLayout ();
+			this.TextBox_Input = new System.Windows.Forms.TextBox();
+			this.TextBox_Output = new System.Windows.Forms.TextBox();
+			this.SuspendLayout();
 			// 
-			// textBox1
+			// TextBox_Input
 			// 
-			this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-			| System.Windows.Forms.AnchorStyles.Left)
-			| System.Windows.Forms.AnchorStyles.Right)));
-			this.textBox1.Font = new System.Drawing.Font ("Consolas", 11F);
-			this.textBox1.Location = new System.Drawing.Point (5, 5);
-			this.textBox1.MaxLength = 2147483647;
-			this.textBox1.Multiline = true;
-			this.textBox1.Name = "textBox1";
-			this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-			this.textBox1.Size = new System.Drawing.Size (1245, 335);
-			this.textBox1.TabIndex = 0;
-			this.textBox1.WordWrap = false;
-			this.textBox1.TextChanged += new System.EventHandler (this.textBox1_TextChanged);
+			this.TextBox_Input.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.TextBox_Input.Font = new System.Drawing.Font("Consolas", 11F);
+			this.TextBox_Input.Location = new System.Drawing.Point(5, 5);
+			this.TextBox_Input.MaxLength = 2147483647;
+			this.TextBox_Input.Multiline = true;
+			this.TextBox_Input.Name = "TextBox_Input";
+			this.TextBox_Input.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+			this.TextBox_Input.Size = new System.Drawing.Size(620, 640);
+			this.TextBox_Input.TabIndex = 0;
+			this.TextBox_Input.WordWrap = false;
+			this.TextBox_Input.TextChanged += new System.EventHandler(this.TextBox_Input_TextChanged);
 			// 
-			// textBox2
+			// TextBox_Output
 			// 
-			this.textBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
-			| System.Windows.Forms.AnchorStyles.Right)));
-			this.textBox2.Font = new System.Drawing.Font ("Consolas", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-			this.textBox2.Location = new System.Drawing.Point (5, 345);
-			this.textBox2.Multiline = true;
-			this.textBox2.Name = "textBox2";
-			this.textBox2.ReadOnly = true;
-			this.textBox2.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-			this.textBox2.Size = new System.Drawing.Size (1245, 300);
-			this.textBox2.TabIndex = 1;
-			this.textBox2.WordWrap = false;
+			this.TextBox_Output.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.TextBox_Output.Font = new System.Drawing.Font("Consolas", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+			this.TextBox_Output.Location = new System.Drawing.Point(630, 5);
+			this.TextBox_Output.MaxLength = 2147483647;
+			this.TextBox_Output.Multiline = true;
+			this.TextBox_Output.Name = "TextBox_Output";
+			this.TextBox_Output.ReadOnly = true;
+			this.TextBox_Output.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+			this.TextBox_Output.Size = new System.Drawing.Size(620, 640);
+			this.TextBox_Output.TabIndex = 1;
+			this.TextBox_Output.WordWrap = false;
 			// 
 			// Form1
 			// 
-			this.AutoScaleDimensions = new System.Drawing.SizeF (6F, 12F);
+			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size (1254, 651);
-			this.Controls.Add (this.textBox2);
-			this.Controls.Add (this.textBox1);
+			this.ClientSize = new System.Drawing.Size(1254, 651);
+			this.Controls.Add(this.TextBox_Output);
+			this.Controls.Add(this.TextBox_Input);
 			this.Name = "Form1";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
 			this.Text = "Form1";
-			this.Load += new System.EventHandler (this.Form1_Load);
-			this.ResumeLayout (false);
-			this.PerformLayout ();
+			this.Load += new System.EventHandler(this.Form1_Load);
+			this.Resize += new System.EventHandler(this.Form1_Resize);
+			this.ResumeLayout(false);
+			this.PerformLayout();
 
 		}
 
 		#endregion
 
-		private System.Windows.Forms.TextBox textBox1;
-		private System.Windows.Forms.TextBox textBox2;
+		private System.Windows.Forms.TextBox TextBox_Input;
+		private System.Windows.Forms.TextBox TextBox_Output;
 	}
 }
 
