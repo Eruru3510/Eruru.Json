@@ -15,10 +15,12 @@ namespace Eruru.Json {
 
 		static readonly BindingFlags BindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 		static readonly KeyValuePair<char, char>[] Unescapes = new KeyValuePair<char, char>[] {
-			new KeyValuePair<char, char> ('\\', '\\'),
 			new KeyValuePair<char, char> ('"', '"'),
-			new KeyValuePair<char, char> ('r', '\r'),
+			new KeyValuePair<char, char> ('\\', '\\'),
+			new KeyValuePair<char, char> ('b', '\b'),
+			new KeyValuePair<char, char> ('f', '\f'),
 			new KeyValuePair<char, char> ('n', '\n'),
+			new KeyValuePair<char, char> ('r', '\r'),
 			new KeyValuePair<char, char> ('t', '\t')
 		};
 

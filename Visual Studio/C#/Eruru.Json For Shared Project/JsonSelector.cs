@@ -8,17 +8,11 @@ namespace Eruru.Json {
 
 		readonly JsonValue Root;
 
-		public JsonSelector (JsonValue root) : base (
-			JsonTokenType.End,
-			JsonTokenType.String,
-			JsonTokenType.Integer,
-			JsonTokenType.Decimal,
-			JsonTokenType.String
-		) {
+		public JsonSelector (JsonValue root) : base (JsonTokenType.End, JsonTokenType.String, JsonTokenType.Integer, JsonTokenType.Decimal, JsonTokenType.String) {
 			Root = root ?? throw new ArgumentNullException (nameof (root));
-			Add (JsonKeyword.Dot, JsonTokenType.Dot);
-			Add (JsonKeyword.LeftBracket, JsonTokenType.LeftBracket);
-			Add (JsonKeyword.RightBracket, JsonTokenType.RightBracket);
+			AddSymbol (JsonKeyword.Dot, JsonTokenType.Dot);
+			AddSymbol (JsonKeyword.LeftBracket, JsonTokenType.LeftBracket);
+			AddSymbol (JsonKeyword.RightBracket, JsonTokenType.RightBracket);
 		}
 
 		public JsonValue Select (string path) {

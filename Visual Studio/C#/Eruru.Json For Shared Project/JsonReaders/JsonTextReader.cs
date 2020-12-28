@@ -9,27 +9,21 @@ namespace Eruru.Json {
 
 		readonly JsonConfig Config;
 
-		public JsonTextReader (TextReader textReader, JsonConfig config = null) : base (
-			JsonTokenType.End,
-			JsonTokenType.Unknown,
-			JsonTokenType.Integer,
-			JsonTokenType.Decimal,
-			JsonTokenType.String
-		) {
+		public JsonTextReader (TextReader textReader, JsonConfig config = null) :
+			base (textReader, JsonTokenType.End, JsonTokenType.Unknown, JsonTokenType.Integer, JsonTokenType.Decimal, JsonTokenType.String) {
 			if (textReader is null) {
 				throw new ArgumentNullException (nameof (textReader));
 			}
-			TextReader = textReader;
 			Config = config ?? JsonConfig.Default;
-			Add (JsonKeyword.LeftBrace, JsonTokenType.LeftBrace);
-			Add (JsonKeyword.RightBrace, JsonTokenType.RightBrace);
-			Add (JsonKeyword.LeftBracket, JsonTokenType.LeftBracket);
-			Add (JsonKeyword.RightBracket, JsonTokenType.RightBracket);
-			Add (JsonKeyword.Comma, JsonTokenType.Comma);
-			Add (JsonKeyword.Semicolon, JsonTokenType.Semicolon);
-			Add (JsonKeyword.Null, JsonTokenType.Null, null);
-			Add (JsonKeyword.True, JsonTokenType.Bool, true);
-			Add (JsonKeyword.False, JsonTokenType.Bool, false);
+			AddSymbol (JsonKeyword.LeftBrace, JsonTokenType.LeftBrace);
+			AddSymbol (JsonKeyword.RightBrace, JsonTokenType.RightBrace);
+			AddSymbol (JsonKeyword.LeftBracket, JsonTokenType.LeftBracket);
+			AddSymbol (JsonKeyword.RightBracket, JsonTokenType.RightBracket);
+			AddSymbol (JsonKeyword.Comma, JsonTokenType.Comma);
+			AddSymbol (JsonKeyword.Semicolon, JsonTokenType.Semicolon);
+			AddKeyword (JsonKeyword.Null, JsonTokenType.Null, null);
+			AddKeyword (JsonKeyword.True, JsonTokenType.Bool, true);
+			AddKeyword (JsonKeyword.False, JsonTokenType.Bool, false);
 		}
 
 		#region IJsonReader
