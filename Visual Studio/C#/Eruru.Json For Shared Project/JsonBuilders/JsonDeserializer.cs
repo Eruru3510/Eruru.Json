@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Reflection;
 
 namespace Eruru.Json {
@@ -27,7 +28,7 @@ namespace Eruru.Json {
 			return (T)BuildObject (typeof (T), instance);
 		}
 
-		object BuildValue (Type type, object instance = null) {
+		public object BuildValue (Type type, object instance = null) {
 			object instanceValue = null;
 			Reader.ReadValue (
 				(value, valueType) => instanceValue = JsonApi.ChangeType (value, type, Config),
@@ -37,7 +38,7 @@ namespace Eruru.Json {
 			return instanceValue;
 		}
 
-		object BuildArray (Type type, object instance = null) {
+		public object BuildArray (Type type, object instance = null) {
 			if (type is null) {
 				throw new ArgumentNullException (nameof (type));
 			}
@@ -125,6 +126,55 @@ namespace Eruru.Json {
 						});
 						return instance;
 					}
+					case JsonArrayType.DataTable: {
+						if (instance is null) {
+							instance = JsonApi.CreateInstance (type);
+						}
+						DataTable dataTable = (DataTable)instance;
+						int columnNumber;
+						int columnIndex;
+						if (dataTable.Columns.Count == 0) {
+							columnNumber = 0;
+						} else {
+							columnNumber = dataTable.Columns.Count;
+						}
+						Reader.ReadArray (index => {
+							ArrayList arrayList = null;
+							object[] values = null;
+							bool hasRow = dataTable.Rows.Count > index;
+							if (!hasRow) {
+								if (index == 0) {
+									arrayList = new ArrayList ();
+								} else if (values is null) {
+									values = new object[columnNumber];
+								}
+							}
+							columnIndex = 0;
+							Reader.ReadObject (columnName => {
+								if (!hasRow && index == 0) {
+									columnNumber++;
+									dataTable.Columns.Add (columnName);
+								}
+								return true;
+							}, () => {
+								object value = BuildValue (null);
+								if (hasRow) {
+									dataTable.Rows[index].ItemArray[columnIndex] = value;
+									return;
+								}
+								if (index == 0) {
+									arrayList.Add (value);
+									return;
+								}
+								values[columnIndex] = value;
+								columnIndex++;
+							});
+							if (!hasRow) {
+								dataTable.Rows.Add (index == 0 ? arrayList.ToArray () : values);
+							}
+						});
+						return instance;
+					}
 					default:
 						throw new JsonNotSupportException (arrayType);
 				}
@@ -132,16 +182,16 @@ namespace Eruru.Json {
 			throw new JsonException ($"不支持将数组转为{type}");
 		}
 
-		object BuildObject (Type type, object instance = null) {
+		public object BuildObject (Type type, object instance = null) {
 			if (type is null) {
 				throw new ArgumentNullException (nameof (type));
 			}
 			if (JsonApi.TryGetObjectType (type, out JsonObjectType objectType)) {
+				if (instance is null) {
+					instance = JsonApi.CreateInstance (type);
+				}
 				switch (objectType) {
 					case JsonObjectType.Class: {
-						if (instance is null) {
-							instance = JsonApi.CreateInstance (type);
-						}
 						MemberInfo memberInfo = null;
 						FieldInfo fieldInfo = null;
 						PropertyInfo propertyInfo = null;
@@ -176,6 +226,23 @@ namespace Eruru.Json {
 								return;
 							}
 							fieldInfo.SetValue (instance, value);
+						});
+						return instance;
+					}
+					case JsonObjectType.DataSet: {
+						DataSet dataSet = (DataSet)instance;
+						string tableName = null;
+						Reader.ReadObject (name => {
+							tableName = name;
+							return true;
+						}, () => {
+							DataTable dataTable = dataSet.Tables[tableName];
+							bool hasTable = dataTable != null;
+							dataTable = BuildArray<DataTable> (dataTable);
+							if (!hasTable) {
+								dataSet.Tables.Add (dataTable);
+							}
+							dataTable.TableName = tableName;
 						});
 						return instance;
 					}

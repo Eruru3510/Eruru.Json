@@ -6,7 +6,8 @@
 		Array,
 		GenericList,
 		GenericIList,
-		GenericObservableCollection
+		GenericObservableCollection,
+		DataTable
 
 	}
 

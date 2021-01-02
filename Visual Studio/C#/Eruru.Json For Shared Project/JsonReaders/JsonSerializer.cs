@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Reflection;
 
 namespace Eruru.Json {
@@ -135,6 +136,15 @@ namespace Eruru.Json {
 					}
 					break;
 				}
+				case JsonArrayType.DataTable: {
+					DataTable dataTable = (DataTable)Stacks.Peek ().Instance;
+					for (int i = 0; i < dataTable.Rows.Count; i++) {
+						Stacks.Push (new JsonSerializerStack (dataTable.Rows[i]));
+						readValue (i);
+						Stacks.Pop ();
+					}
+					break;
+				}
 				default:
 					throw new JsonNotSupportException (Stacks.Peek ().ArrayType);
 			}
@@ -177,6 +187,28 @@ namespace Eruru.Json {
 						}
 					});
 					break;
+				case JsonObjectType.DataRow: {
+					DataRow dataRow = (DataRow)Stacks.Peek ().Instance;
+					for (int i = 0; i < dataRow.Table.Columns.Count; i++) {
+						if (key (dataRow.Table.Columns[i].ColumnName)) {
+							Stacks.Push (new JsonSerializerStack (dataRow[i]));
+							readValue ();
+							Stacks.Pop ();
+						}
+					}
+					break;
+				}
+				case JsonObjectType.DataSet: {
+					DataSet dataSet = (DataSet)Stacks.Peek ().Instance;
+					foreach (DataTable dataTable in dataSet.Tables) {
+						if (key (dataTable.TableName)) {
+							Stacks.Push (new JsonSerializerStack (dataTable));
+							readValue ();
+							Stacks.Pop ();
+						}
+					}
+					break;
+				}
 				default:
 					throw new JsonNotSupportException (Stacks.Peek ().ObjectType);
 			}

@@ -3,6 +3,8 @@
 	enum JsonObjectType {
 
 		Unknown,
+		DataRow,
+		DataSet,
 		Class
 
 	}

@@ -27,11 +27,23 @@ namespace Eruru.Json {
 		}
 
 		public void Write (object value) {
+			if (value is JsonValue jsonValue) {
+				new JsonTextBuilder (new JsonValueReader (jsonValue), this).BuildValue ();
+				return;
+			}
+			if (value is JsonArray array) {
+				new JsonTextBuilder (new JsonValueReader (array), this).BuildArray ();
+				return;
+			}
+			if (value is JsonObject jsonObject) {
+				new JsonTextBuilder (new JsonValueReader (jsonObject), this).BuildObject ();
+				return;
+			}
 			if (JsonApi.TryGetValueType (value, out JsonValueType valueType, Config)) {
 				Write (value, valueType);
 				return;
 			}
-			throw new JsonNotSupportException (value);
+			new JsonTextBuilder (new JsonSerializer (value, Config), this).BuildValue ();
 		}
 
 		public void BeginArray () {
@@ -50,7 +62,12 @@ namespace Eruru.Json {
 			Begin (false, false);
 		}
 
-		public void Write (object value, JsonValueType valueType) {
+		public override string ToString () {
+			Check ();
+			return TextWriter.ToString ();
+		}
+
+		internal void Write (object value, JsonValueType valueType) {
 			CheckEnd ();
 			Head ();
 			if (JsonApi.HasFlag (Stacks.Peek ().Stage, JsonTextWriterStage.Key)) {
@@ -83,11 +100,6 @@ namespace Eruru.Json {
 					throw new JsonNotSupportException (valueType);
 			}
 			NextStage ();
-		}
-
-		public override string ToString () {
-			Check ();
-			return TextWriter.ToString ();
 		}
 
 		void WriteString (string value) {

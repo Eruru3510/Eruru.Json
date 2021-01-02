@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
@@ -103,6 +104,9 @@ namespace Eruru.Json {
 				case "ObservableCollection`1":
 					arrayType = JsonArrayType.GenericObservableCollection;
 					return true;
+				case nameof (DataTable):
+					arrayType = JsonArrayType.DataTable;
+					return true;
 			}
 			arrayType = JsonArrayType.Unknown;
 			return false;
@@ -111,6 +115,14 @@ namespace Eruru.Json {
 		public static bool TryGetObjectType (Type type, out JsonObjectType objectType) {
 			if (type is null) {
 				throw new ArgumentNullException (nameof (type));
+			}
+			switch (type.Name) {
+				case nameof (DataRow):
+					objectType = JsonObjectType.DataRow;
+					return true;
+				case nameof (DataSet):
+					objectType = JsonObjectType.DataSet;
+					return true;
 			}
 			if (type.IsClass) {
 				objectType = JsonObjectType.Class;
