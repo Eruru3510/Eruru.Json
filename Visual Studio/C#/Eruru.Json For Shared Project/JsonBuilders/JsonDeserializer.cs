@@ -246,6 +246,31 @@ namespace Eruru.Json {
 						});
 						return instance;
 					}
+					case JsonObjectType.Dictionary: {
+						IDictionary dictionary = (IDictionary)instance;
+						Type keyType = type.GetGenericArguments ()[0];
+						Type valueType = type.GetGenericArguments ()[1];
+						object key = null;
+						Reader.ReadObject (name => {
+							key = JsonApi.ChangeType (name, keyType);
+							return true;
+						}, () => {
+							dictionary[key] = BuildValue (valueType, dictionary[key]);
+						});
+						return instance;
+					}
+					case JsonObjectType.KeyValuePair: {
+						Type keyType = type.GetGenericArguments ()[0];
+						Type valueType = type.GetGenericArguments ()[1];
+						Reader.ReadObject (name => {
+							JsonApi.GetField (type, "key").SetValue (instance, JsonApi.ChangeType (name, keyType));
+							return true;
+						}, () => {
+							FieldInfo fieldInfo = JsonApi.GetField (type, "value");
+							fieldInfo.SetValue (instance, JsonApi.ChangeType (BuildValue (valueType, fieldInfo.GetValue (instance)), valueType));
+						});
+						return instance;
+					}
 					default:
 						throw new JsonNotSupportException (objectType);
 				}

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using Eruru.Json;
@@ -16,8 +17,20 @@ namespace ConsoleApp1 {
 
 		static void Main (string[] args) {
 			Console.Title = nameof (ConsoleApp1);
-			SerializeDataSet ();
+			SerializeDictionary ();
 			Console.ReadLine ();
+		}
+
+		static void SerializeDictionary () {
+			Dictionary<string, KeyValuePair<string, object>> dictionary = new Dictionary<string, KeyValuePair<string, object>> () {
+				{ "Jack", new KeyValuePair<string, object> ("Age", 12 ) },
+				{ "Steve", new KeyValuePair<string, object> ("Color", "Red" ) }
+			};
+			string json = JsonConvert.Serialize (dictionary, false);
+			Console.WriteLine (json);
+			Dictionary<string, KeyValuePair<string, object>> newDictionary = new Dictionary<string, KeyValuePair<string, object>> ();
+			newDictionary = JsonConvert.Deserialize (json, newDictionary);
+			Console.WriteLine (JsonConvert.Serialize (newDictionary, false));
 		}
 
 		static void SerializeDataSet () {

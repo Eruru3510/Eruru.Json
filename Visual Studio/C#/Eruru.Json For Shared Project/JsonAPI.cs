@@ -123,6 +123,12 @@ namespace Eruru.Json {
 				case nameof (DataSet):
 					objectType = JsonObjectType.DataSet;
 					return true;
+				case "Dictionary`2":
+					objectType = JsonObjectType.Dictionary;
+					return true;
+				case "KeyValuePair`2":
+					objectType = JsonObjectType.KeyValuePair;
+					return true;
 			}
 			if (type.IsClass) {
 				objectType = JsonObjectType.Class;
@@ -147,6 +153,16 @@ namespace Eruru.Json {
 				throw new ArgumentNullException (nameof (type));
 			}
 			return type.GetMembers (BindingFlags);
+		}
+
+		public static FieldInfo GetField (Type type, string name) {
+			if (type is null) {
+				throw new ArgumentNullException (nameof (type));
+			}
+			if (name is null) {
+				throw new ArgumentNullException (nameof (name));
+			}
+			return type.GetField (name, BindingFlags);
 		}
 
 		public static void ForEachSerializableMembers (Type type, JsonAction<MemberInfo, FieldInfo, PropertyInfo, JsonField> action) {

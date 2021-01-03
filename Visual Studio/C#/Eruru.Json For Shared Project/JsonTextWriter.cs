@@ -63,7 +63,7 @@ namespace Eruru.Json {
 		}
 
 		public override string ToString () {
-			Check ();
+			CheckNotEnd ();
 			return TextWriter.ToString ();
 		}
 
@@ -99,7 +99,7 @@ namespace Eruru.Json {
 				default:
 					throw new JsonNotSupportException (valueType);
 			}
-			NextStage ();
+			Tail ();
 		}
 
 		void WriteString (string value) {
@@ -128,7 +128,7 @@ namespace Eruru.Json {
 			}
 			TextWriter.Write (isArray ? JsonKeyword.RightBracket : JsonKeyword.RightBrace);
 			Stacks.Pop ();
-			NextStage ();
+			Tail ();
 		}
 
 		void CheckEnd () {
@@ -137,7 +137,7 @@ namespace Eruru.Json {
 			}
 		}
 
-		void Check () {
+		void CheckNotEnd () {
 			if (Stacks.Peek ().Stage != JsonTextWriterStage.End) {
 				throw new JsonException ($"Json未写完{Environment.NewLine}{TextWriter}");
 			}
@@ -163,7 +163,7 @@ namespace Eruru.Json {
 			Stacks.Peek ().HasValue = true;
 		}
 
-		void NextStage () {
+		void Tail () {
 			switch (Stacks.Peek ().Stage) {
 				case JsonTextWriterStage.Value:
 					Stacks.Peek ().Stage = JsonTextWriterStage.End;
@@ -203,7 +203,7 @@ namespace Eruru.Json {
 
 		public void Dispose () {
 			TextWriter.Dispose ();
-			Check ();
+			CheckNotEnd ();
 		}
 
 		#endregion

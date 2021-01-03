@@ -5,6 +5,8 @@
 		Unknown,
 		DataRow,
 		DataSet,
+		Dictionary,
+		KeyValuePair,
 		Class
 
 	}

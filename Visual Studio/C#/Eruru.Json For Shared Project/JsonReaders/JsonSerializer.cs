@@ -209,6 +209,25 @@ namespace Eruru.Json {
 					}
 					break;
 				}
+				case JsonObjectType.Dictionary: {
+					IDictionary dictionary = (IDictionary)Stacks.Peek ().Instance;
+					foreach (DictionaryEntry entry in dictionary) {
+						if (key (entry.Key.ToString ())) {
+							Stacks.Push (new JsonSerializerStack (entry.Value));
+							readValue ();
+							Stacks.Pop ();
+						}
+					}
+					break;
+				}
+				case JsonObjectType.KeyValuePair: {
+					if (key (Stacks.Peek ().Type.GetProperty ("Key").GetValue (Stacks.Peek ().Instance, null).ToString ())) {
+						Stacks.Push (new JsonSerializerStack (Stacks.Peek ().Type.GetProperty ("Value").GetValue (Stacks.Peek ().Instance, null)));
+						readValue ();
+						Stacks.Pop ();
+					}
+					break;
+				}
 				default:
 					throw new JsonNotSupportException (Stacks.Peek ().ObjectType);
 			}
