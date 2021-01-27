@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net20;netstandard2.0</TargetFrameworks>
-		<Version>1.0.0.4</Version>
+		<TargetFrameworks>net20;net35;net40;net45;netstandard2.0</TargetFrameworks>
+		<Version>1.0.0.7</Version>
 	</PropertyGroup>
 
 	<Import Project="..\Eruru.Json For Shared Project\Eruru.Json For Shared Project.projitems" Label="Shared" />
 
 	<ItemGroup>
-	  <PackageReference Include="Eruru.TextTokenizer" Version="1.0.0.1" />
+		<PackageReference Include="Eruru.TextTokenizer" Version="1.0.0.1" />
 	</ItemGroup>
 
 </Project>

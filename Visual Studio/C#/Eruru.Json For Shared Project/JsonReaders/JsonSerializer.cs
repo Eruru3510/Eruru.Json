@@ -180,7 +180,9 @@ namespace Eruru.Json {
 						}
 						object ConverterWrite (object value) {
 							if (field?.HasConverter ?? false) {
-								if (JsonApi.GetElementType (field.ConverterWriteType) != JsonApi.GetElementType (fieldType).BaseType) {
+								if (field.ConverterWriteType != fieldType.BaseType &&
+									JsonApi.GetElementType (field.ConverterWriteType) != JsonApi.GetElementType (fieldType).BaseType
+								) {
 									fieldType = field.ConverterWriteType;
 								}
 								return field.ConverterWrite (value, Config);

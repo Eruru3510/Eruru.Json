@@ -10,7 +10,7 @@ namespace ConsoleApp1 {
 
 			[JsonField (typeof (Converter))]
 			public Student[] Students;
-			[JsonField (typeof (Converter))]
+			[JsonField (typeof (ArrayConverter), typeof (Converter))]
 			public Teacher[] Teachers;
 
 		}
@@ -53,6 +53,18 @@ namespace ConsoleApp1 {
 			public People[] Write (People[] value) {
 				value[0].Say ();
 				return value;
+			}
+
+		}
+
+		class ArrayConverter : IJsonConverter<Array, Teacher[]> {
+
+			public Teacher[] Read (Array value) {
+				return (Teacher[])value;
+			}
+
+			public Array Write (Teacher[] value) {
+				return null;
 			}
 
 		}

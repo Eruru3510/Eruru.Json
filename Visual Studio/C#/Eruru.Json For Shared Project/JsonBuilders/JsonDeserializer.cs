@@ -54,7 +54,7 @@ namespace Eruru.Json {
 						Type elementType = type.GetElementType ();
 						Array array = instance as Array;
 						bool create = false;
-						if (array is null) {
+						if (instance?.GetType () != type) {
 							create = true;
 						} else {
 							for (int i = 0; i < array.Rank; i++) {
@@ -101,7 +101,7 @@ namespace Eruru.Json {
 					case JsonArrayType.GenericIList:
 					case JsonArrayType.GenericObservableCollection: {
 						Type elementType = type.GetGenericArguments ()[0];
-						if (instance is null) {
+						if (instance?.GetType () != type) {
 							if (type.IsInterface) {
 								switch (arrayType) {
 									case JsonArrayType.GenericIList:
@@ -127,7 +127,7 @@ namespace Eruru.Json {
 						return instance;
 					}
 					case JsonArrayType.DataTable: {
-						if (instance is null) {
+						if (instance?.GetType () != type) {
 							instance = JsonApi.CreateInstance (type);
 						}
 						DataTable dataTable = (DataTable)instance;
@@ -187,7 +187,7 @@ namespace Eruru.Json {
 				throw new ArgumentNullException (nameof (type));
 			}
 			if (JsonApi.TryGetObjectType (type, out JsonObjectType objectType)) {
-				if (instance is null) {
+				if (instance?.GetType () != type) {
 					instance = JsonApi.CreateInstance (type);
 				}
 				switch (objectType) {
@@ -283,7 +283,12 @@ namespace Eruru.Json {
 				throw new ArgumentNullException (nameof (type));
 			}
 			if (field?.HasConverter ?? false) {
-				Type readType = JsonApi.GetElementType (field.ConverterReadType) == JsonApi.GetElementType (type).BaseType ? type : field.ConverterReadType;
+				Type readType;
+				if (field.ConverterReadType == type.BaseType || JsonApi.GetElementType (field.ConverterReadType) == JsonApi.GetElementType (type).BaseType) {//todo 让多个转换器之间也支持
+					readType = type;
+				} else {
+					readType = field.ConverterReadType;
+				}
 				return JsonApi.ChangeType (field.ConverterRead (BuildValue (readType, instance), Config), type, Config);
 			}
 			return BuildValue (type, instance);
