@@ -26,16 +26,14 @@ namespace Eruru.Json {
 			if (Stacks.Peek ().Instance is null) {
 				return;
 			}
-			Stacks.Peek ().Type = Stacks.Peek ().Instance.GetType ();
+			if (Stacks.Peek ().Type is null) {
+				Stacks.Peek ().Type = Stacks.Peek ().Instance.GetType ();
+			}
 			if (isArray) {
 				JsonApi.TryGetArrayType (Stacks.Peek ().Type, out Stacks.Peek ().ArrayType);
 				return;
 			}
 			JsonApi.TryGetObjectType (Stacks.Peek ().Type, out Stacks.Peek ().ObjectType);
-		}
-
-		object ConverterWrite () {
-			return Stacks.Peek ().Field?.Write (Stacks.Peek ().Instance, Config) ?? Stacks.Peek ().Instance;
 		}
 
 		#region IJsonReader
@@ -60,21 +58,21 @@ namespace Eruru.Json {
 			}
 			Stacks.Peek ().IsInitialized = true;
 			if (Stacks.Peek ().Instance is null) {
-				value (ConverterWrite (), JsonValueType.Null);
+				value (null, JsonValueType.Null);
 				return;
 			}
-			Stacks.Peek ().Type = Stacks.Peek ().Instance.GetType ();
+			if (Stacks.Peek ().Type is null) {
+				Stacks.Peek ().Type = Stacks.Peek ().Instance.GetType ();
+			}
 			if (JsonApi.TryGetValueType (Stacks.Peek ().Type, out JsonValueType valueType, Config)) {
-				value (ConverterWrite (), valueType);
+				value (Stacks.Peek ().Instance, valueType);
 				return;
 			}
-			if (JsonApi.TryGetArrayType (Stacks.Peek ().Type, out JsonArrayType arrayType)) {
-				Stacks.Peek ().ArrayType = arrayType;
+			if (JsonApi.TryGetArrayType (Stacks.Peek ().Type, out Stacks.Peek ().ArrayType)) {
 				readArray ();
 				return;
 			}
-			if (JsonApi.TryGetObjectType (Stacks.Peek ().Type, out JsonObjectType objectType)) {
-				Stacks.Peek ().ObjectType = objectType;
+			if (JsonApi.TryGetObjectType (Stacks.Peek ().Type, out Stacks.Peek ().ObjectType)) {
 				readObject ();
 				return;
 			}
@@ -163,6 +161,7 @@ namespace Eruru.Json {
 					JsonApi.ForEachSerializableMembers (Stacks.Peek ().Type, (memberInfo, fieldInfo, propertyInfo, field) => {
 						bool isReaded = false;
 						object instance = null;
+						Type fieldType = null;
 						object Read () {
 							if (isReaded) {
 								return instance;
@@ -170,18 +169,30 @@ namespace Eruru.Json {
 							isReaded = true;
 							switch (memberInfo.MemberType) {
 								case MemberTypes.Field:
+									fieldType = fieldInfo.FieldType;
 									return instance = fieldInfo.GetValue (Stacks.Peek ().Instance);
 								case MemberTypes.Property:
+									fieldType = propertyInfo.PropertyType;
 									return instance = propertyInfo.GetValue (Stacks.Peek ().Instance, null);
 								default:
 									throw new JsonNotSupportException (memberInfo.MemberType);
 							}
 						}
+						object ConverterWrite (object value) {
+							if (field?.HasConverter ?? false) {
+								if (JsonApi.GetElementType (field.ConverterWriteType) != JsonApi.GetElementType (fieldType).BaseType) {
+									fieldType = field.ConverterWriteType;
+								}
+								return field.ConverterWrite (value, Config);
+							}
+							return value;
+						}
 						if (!JsonApi.CanSerializeValue (Read (), Config)) {
 							return;
 						}
 						if (key (field?.Name ?? memberInfo.Name)) {
-							Stacks.Push (new JsonSerializerStack (Read (), field));
+							Stacks.Push (new JsonSerializerStack (ConverterWrite (Read ()), field));
+							Stacks.Peek ().Type = fieldType;
 							readValue ();
 							Stacks.Pop ();
 						}

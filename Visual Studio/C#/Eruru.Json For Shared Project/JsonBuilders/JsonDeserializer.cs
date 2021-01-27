@@ -283,7 +283,8 @@ namespace Eruru.Json {
 				throw new ArgumentNullException (nameof (type));
 			}
 			if (field?.HasConverter ?? false) {
-				return JsonApi.ChangeType (field.Read (BuildValue (field.ConverterReadType, instance), Config), type, Config);
+				Type readType = JsonApi.GetElementType (field.ConverterReadType) == JsonApi.GetElementType (type).BaseType ? type : field.ConverterReadType;
+				return JsonApi.ChangeType (field.ConverterRead (BuildValue (readType, instance), Config), type, Config);
 			}
 			return BuildValue (type, instance);
 		}

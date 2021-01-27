@@ -17,6 +17,11 @@ namespace Eruru.Json {
 			get => Converters[0].BeforeType;
 
 		}
+		public Type ConverterWriteType {
+
+			get => Converters[Converters.Length - 1].BeforeType;
+
+		}
 
 		static readonly Dictionary<int, JsonConverter> CachedConverters = new Dictionary<int, JsonConverter> ();
 
@@ -42,9 +47,9 @@ namespace Eruru.Json {
 			SetConverters (converters);
 		}
 
-		public object Read (object value, JsonConfig config) {
+		public object ConverterRead (object value = null, JsonConfig config = null) {
 			if (config is null) {
-				throw new ArgumentNullException (nameof (config));
+				config = JsonConfig.Default;
 			}
 			if (HasConverter) {
 				for (int i = 0; i < Converters.Length; i++) {
@@ -54,13 +59,13 @@ namespace Eruru.Json {
 			return value;
 		}
 
-		public object Write (object value, JsonConfig config) {
+		public object ConverterWrite (object value = null, JsonConfig config = null) {
 			if (config is null) {
-				throw new ArgumentNullException (nameof (config));
+				config = JsonConfig.Default;
 			}
 			if (HasConverter) {
 				for (int i = Converters.Length - 1; i >= 0; i--) {
-					value = Converters[i].Read (value, config);
+					value = Converters[i].Write (value, config);
 				}
 			}
 			return value;

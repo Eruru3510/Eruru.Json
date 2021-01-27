@@ -35,12 +35,12 @@ namespace Eruru.Json {
 			return (a.GetHashCode () & b.GetHashCode ()) != 0;
 		}
 
-		public static bool TryGetValueType (Type type, out JsonValueType valueType, JsonConfig config) {
+		public static bool TryGetValueType (Type type, out JsonValueType valueType, JsonConfig config = null) {
 			if (type is null) {
 				throw new ArgumentNullException (nameof (type));
 			}
 			if (config is null) {
-				throw new ArgumentNullException (nameof (config));
+				config = JsonConfig.Default;
 			}
 			if (type.IsEnum && config.StringEnum) {
 				valueType = JsonValueType.String;
@@ -215,9 +215,9 @@ namespace Eruru.Json {
 			}
 		}
 
-		public static bool CanSerializeValue (object value, JsonConfig config) {
+		public static bool CanSerializeValue (object value = null, JsonConfig config = null) {
 			if (config is null) {
-				throw new ArgumentNullException (nameof (config));
+				config = JsonConfig.Default;
 			}
 			if (config.IgnoreNullValue) {
 				if (value is null) {
@@ -243,6 +243,13 @@ namespace Eruru.Json {
 			return attributes.Length == 0 ? null : (T)attributes[0];
 		}
 
+		public static Type GetElementType (Type type) {
+			if (type is null) {
+				throw new ArgumentNullException (nameof (type));
+			}
+			return type.IsArray ? type.GetElementType () : type;
+		}
+
 		public static object ChangeType (object value, Type type, JsonConfig config = null) {
 			if (type is null) {
 				return value;
@@ -256,6 +263,9 @@ namespace Eruru.Json {
 						return Enum.Parse (type, value?.ToString (), config.IgnoreCase);
 					}
 					return Enum.ToObject (type, Convert.ChangeType (value, TypeCode.Int32));
+				}
+				if (value?.GetType ().GetInterface (nameof (IConvertible)) == null) {
+					return value;
 				}
 				return Convert.ChangeType (value, type);
 			} catch {
@@ -283,9 +293,9 @@ namespace Eruru.Json {
 			return Activator.CreateInstance (type);
 		}
 
-		public static bool Equals (string a, string b, JsonConfig config) {
+		public static bool Equals (string a = null, string b = null, JsonConfig config = null) {
 			if (config is null) {
-				throw new ArgumentNullException (nameof (config));
+				config = JsonConfig.Default;
 			}
 			return string.Equals (a, b, config.IgnoreCase ? StringComparison.CurrentCultureIgnoreCase : StringComparison.CurrentCulture);
 		}

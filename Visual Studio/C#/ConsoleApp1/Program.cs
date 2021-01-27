@@ -1,36 +1,71 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using Eruru.Json;
 
 namespace ConsoleApp1 {
 
 	class Program {
 
-		class Player {
+		class Data {
 
-			public int ID;
+			[JsonField (typeof (Converter))]
+			public Student[] Students;
+			[JsonField (typeof (Converter))]
+			public Teacher[] Teachers;
+
+		}
+
+		abstract class People {
+
+			public virtual void Say () {
+				Console.WriteLine ("我是人");
+			}
+
+		}
+
+		class Student : People {
+
 			public string Name;
+
+			public override void Say () {
+				Console.WriteLine ("我是学生");
+			}
+
+		}
+
+		class Teacher : People {
+
+			public string Class;
+
+			public override void Say () {
+				Console.WriteLine ("我是老师");
+			}
+
+		}
+
+		class Converter : IJsonConverter<People[], People[]> {
+
+			public People[] Read (People[] value) {
+				value[0].Say ();
+				return value;
+			}
+
+			public People[] Write (People[] value) {
+				value[0].Say ();
+				return value;
+			}
 
 		}
 
 		static void Main (string[] args) {
 			Console.Title = nameof (ConsoleApp1);
-			SerializeDictionary ();
+			Test ();
 			Console.ReadLine ();
 		}
 
-		static void SerializeDictionary () {
-			Dictionary<string, KeyValuePair<string, object>> dictionary = new Dictionary<string, KeyValuePair<string, object>> () {
-				{ "Jack", new KeyValuePair<string, object> ("Age", 12 ) },
-				{ "Steve", new KeyValuePair<string, object> ("Color", "Red" ) }
-			};
-			string json = JsonConvert.Serialize (dictionary, false);
-			Console.WriteLine (json);
-			Dictionary<string, KeyValuePair<string, object>> newDictionary = new Dictionary<string, KeyValuePair<string, object>> ();
-			newDictionary = JsonConvert.Deserialize (json, newDictionary);
-			Console.WriteLine (JsonConvert.Serialize (newDictionary, false));
+		static void Test () {
+			Data data = JsonConvert.Deserialize<Data> ("{'Students':[{'Name':'学生'},{'Name':'学生'}],'Teachers':[{'Class':'教师'},{'Class':'教师'}]}");
+			Console.WriteLine (JsonConvert.Serialize (data));
 		}
 
 		static void SerializeDataSet () {
@@ -54,6 +89,7 @@ namespace ConsoleApp1 {
 			Console.WriteLine (jsonObject.Serialize (false));
 		}
 
+		/*
 		static void WriteJson () {
 			JsonArray array = new JsonArray (1);
 			Player player = new Player ();
@@ -66,7 +102,7 @@ namespace ConsoleApp1 {
 			textWriter.EndObject ();
 			Console.WriteLine (textWriter);
 		}
-
+		*/
 	}
 
 }

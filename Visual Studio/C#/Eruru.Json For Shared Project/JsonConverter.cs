@@ -29,17 +29,17 @@ namespace Eruru.Json {
 			Instance = JsonApi.CreateInstance (Type);
 		}
 
-		public object Read (object value, JsonConfig config) {
+		public object Read (object value = null, JsonConfig config = null) {
 			if (config is null) {
-				throw new ArgumentNullException (nameof (config));
+				config = JsonConfig.Default;
 			}
 			ReadParameters[0] = JsonApi.ChangeType (value, BeforeType, config);
 			return JsonApi.ChangeType (ReadMethod.Invoke (Instance, ReadParameters), ReadMethod.ReturnType, config);
 		}
 
-		public object Write (object value, JsonConfig config) {
+		public object Write (object value = null, JsonConfig config = null) {
 			if (config is null) {
-				throw new ArgumentNullException (nameof (config));
+				config = JsonConfig.Default;
 			}
 			WriteParameters[0] = JsonApi.ChangeType (value, AfterType, config);
 			return JsonApi.ChangeType (WriteMethod.Invoke (Instance, WriteParameters), WriteMethod.ReturnType, config);
