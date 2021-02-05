@@ -297,7 +297,7 @@ namespace Eruru.Json {
 			if (config is null) {
 				config = JsonConfig.Default;
 			}
-			return string.Equals (a, b, config.IgnoreCase ? StringComparison.CurrentCultureIgnoreCase : StringComparison.CurrentCulture);
+			return string.Equals (a, b, config.IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
 		}
 
 		public static string CancelUnescape (string text) {
