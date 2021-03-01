@@ -246,7 +246,9 @@ namespace Eruru.Json {
 						});
 						return instance;
 					}
-					case JsonObjectType.Dictionary: {
+					case JsonObjectType.GenericDictionary:
+					case JsonObjectType.GenericSortedDictionary:
+					case JsonObjectType.GenericSortedList: {
 						IDictionary dictionary = (IDictionary)instance;
 						Type keyType = type.GetGenericArguments ()[0];
 						Type valueType = type.GetGenericArguments ()[1];
@@ -259,7 +261,7 @@ namespace Eruru.Json {
 						});
 						return instance;
 					}
-					case JsonObjectType.KeyValuePair: {
+					case JsonObjectType.GenericKeyValuePair: {
 						Type keyType = type.GetGenericArguments ()[0];
 						Type valueType = type.GetGenericArguments ()[1];
 						Reader.ReadObject (name => {

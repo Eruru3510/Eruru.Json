@@ -124,10 +124,16 @@ namespace Eruru.Json {
 					objectType = JsonObjectType.DataSet;
 					return true;
 				case "Dictionary`2":
-					objectType = JsonObjectType.Dictionary;
+					objectType = JsonObjectType.GenericDictionary;
+					return true;
+				case "SortedDictionary`2":
+					objectType = JsonObjectType.GenericSortedDictionary;
+					return true;
+				case "SortedList`2":
+					objectType = JsonObjectType.GenericSortedList;
 					return true;
 				case "KeyValuePair`2":
-					objectType = JsonObjectType.KeyValuePair;
+					objectType = JsonObjectType.GenericKeyValuePair;
 					return true;
 			}
 			if (type.IsClass) {

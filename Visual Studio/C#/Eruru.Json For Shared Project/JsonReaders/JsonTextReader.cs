@@ -117,7 +117,7 @@ namespace Eruru.Json {
 					if (Current.Type != JsonTokenType.String) {
 						throw new JsonTextReaderException (this, "键名");
 					}
-					needReadValue = key ((string)Current.Value);
+					needReadValue = key (Regex.Unescape ((string)Current.Value));
 					MoveNext ();
 					if (Current.Type != JsonTokenType.Semicolon) {
 						throw new JsonTextReaderException (this, JsonKeyword.Semicolon);

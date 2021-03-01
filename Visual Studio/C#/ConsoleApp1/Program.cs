@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using Eruru.Json;
 
@@ -71,7 +72,10 @@ namespace ConsoleApp1 {
 
 		static void Main (string[] args) {
 			Console.Title = nameof (ConsoleApp1);
-			Test ();
+			SortedList<string, int> sortedDictionary = JsonConvert.Deserialize<SortedList<string, int>> ("{'b':2,'a':1}");
+			foreach (var a in sortedDictionary) {
+				Console.WriteLine ($"{a.Key} {a.Value}");
+			}
 			Console.ReadLine ();
 		}
 

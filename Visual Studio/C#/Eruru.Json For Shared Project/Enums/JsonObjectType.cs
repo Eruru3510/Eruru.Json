@@ -5,8 +5,10 @@
 		Unknown,
 		DataRow,
 		DataSet,
-		Dictionary,
-		KeyValuePair,
+		GenericDictionary,
+		GenericSortedDictionary,
+		GenericSortedList,
+		GenericKeyValuePair,
 		Class
 
 	}

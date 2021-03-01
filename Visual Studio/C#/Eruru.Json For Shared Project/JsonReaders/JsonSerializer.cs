@@ -222,7 +222,9 @@ namespace Eruru.Json {
 					}
 					break;
 				}
-				case JsonObjectType.Dictionary: {
+				case JsonObjectType.GenericDictionary:
+				case JsonObjectType.GenericSortedDictionary:
+				case JsonObjectType.GenericSortedList: {
 					IDictionary dictionary = (IDictionary)Stacks.Peek ().Instance;
 					foreach (DictionaryEntry entry in dictionary) {
 						if (key (entry.Key.ToString ())) {
@@ -233,7 +235,7 @@ namespace Eruru.Json {
 					}
 					break;
 				}
-				case JsonObjectType.KeyValuePair: {
+				case JsonObjectType.GenericKeyValuePair: {
 					if (key (Stacks.Peek ().Type.GetProperty ("Key").GetValue (Stacks.Peek ().Instance, null).ToString ())) {
 						Stacks.Push (new JsonSerializerStack (Stacks.Peek ().Type.GetProperty ("Value").GetValue (Stacks.Peek ().Instance, null)));
 						readValue ();
