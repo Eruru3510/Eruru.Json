@@ -12,6 +12,7 @@ namespace UnitTestProject1 {
 		public void WarframeStat () {
 			string path = @"..\..\..\Assets\warframestat.json";
 			string json = File.ReadAllText (path);
+			File.WriteAllText ("D:/1.txt", JsonObject.Load (path).Serialize (false));
 			Assert.AreEqual (json, JsonObject.Load (path).Serialize (false));
 		}
 

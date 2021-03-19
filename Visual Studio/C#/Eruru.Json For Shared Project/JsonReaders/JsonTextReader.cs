@@ -100,7 +100,8 @@ namespace Eruru.Json {
 			}
 			JsonTokenType end = isArray ? JsonTokenType.RightBracket : JsonTokenType.RightBrace;
 			bool isFirst = true;
-			for (int i = 0; MoveNext (); i++) {
+			int i = 0;
+			while (MoveNext ()) {
 				if (Current.Type == end) {
 					return;
 				}
@@ -117,7 +118,7 @@ namespace Eruru.Json {
 					if (Current.Type != JsonTokenType.String) {
 						throw new JsonTextReaderException (this, "键名");
 					}
-					needReadValue = key (Regex.Unescape ((string)Current.Value));
+					needReadValue = key (Regex.Unescape (Current.String));
 					MoveNext ();
 					if (Current.Type != JsonTokenType.Semicolon) {
 						throw new JsonTextReaderException (this, JsonKeyword.Semicolon);
@@ -125,7 +126,7 @@ namespace Eruru.Json {
 					MoveNext ();
 				}
 				if (needReadValue) {
-					readValue (i);
+					readValue (i++);
 					continue;
 				}
 				ConsumptionValue ();

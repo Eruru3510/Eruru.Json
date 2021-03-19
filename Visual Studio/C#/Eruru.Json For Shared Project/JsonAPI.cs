@@ -15,14 +15,14 @@ namespace Eruru.Json {
 	static class JsonApi {
 
 		static readonly BindingFlags BindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-		static readonly KeyValuePair<char, char>[] Unescapes = new KeyValuePair<char, char>[] {
-			new KeyValuePair<char, char> ('"', '"'),
-			new KeyValuePair<char, char> ('\\', '\\'),
-			new KeyValuePair<char, char> ('b', '\b'),
-			new KeyValuePair<char, char> ('f', '\f'),
-			new KeyValuePair<char, char> ('n', '\n'),
-			new KeyValuePair<char, char> ('r', '\r'),
-			new KeyValuePair<char, char> ('t', '\t')
+		static readonly Dictionary<char, char> Unescapes = new Dictionary<char, char> {
+			{ '"', '"' },
+			{ '\\', '\\' },
+			{ '\b', 'b' },
+			{ '\f', 'f' },
+			{ '\n', 'n' },
+			{ '\r', 'r' },
+			{ '\t', 't' }
 		};
 
 		public static bool HasFlag (Enum a, Enum b) {
@@ -312,13 +312,12 @@ namespace Eruru.Json {
 			}
 			StringBuilder stringBuilder = new StringBuilder ();
 			for (int i = 0; i < text.Length; i++) {
-				int index = Array.FindIndex (Unescapes, escape => escape.Value == text[i]);
-				if (index == -1) {
-					stringBuilder.Append (text[i]);
+				if (Unescapes.TryGetValue (text[i], out char value)) {
+					stringBuilder.Append (JsonKeyword.Backslash);
+					stringBuilder.Append (value);
 					continue;
 				}
-				stringBuilder.Append (JsonKeyword.Backslash);
-				stringBuilder.Append (Unescapes[index].Key);
+				stringBuilder.Append (text[i]);
 			}
 			return stringBuilder.ToString ();
 		}

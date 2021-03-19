@@ -105,14 +105,12 @@ namespace Eruru.Json {
 								indices[dimension] = i;
 								if (dimension == indices.Length - 1) {
 									Stacks.Push (new JsonSerializerStack (array.GetValue (indices)));
-									readValue (count);
+									readValue (count++);
 									Stacks.Pop ();
-									count++;
 									continue;
 								}
 								dimension++;
-								readValue (count);
-								count++;
+								readValue (count++);
 							}
 							dimension--;
 							if (dimension < 0) {
