@@ -513,14 +513,14 @@ namespace Eruru.Json {
 					case JsonValueType.Decimal:
 						return ToDecimal ().Equals (Convert.ToDecimal (obj));
 					case JsonValueType.Bool:
-						return ToBool ().Equals ((bool)obj);
+						return ToBool ().Equals (Convert.ToBoolean (obj));
 					case JsonValueType.String:
 						if (obj is char character) {
 							return ToChar ().Equals (character);
 						}
-						return ToString ().Equals ((string)obj);
+						return ToString ().Equals (Convert.ToString (obj));
 					case JsonValueType.DateTime:
-						return ToDateTime ().Equals ((DateTime)obj);
+						return ToDateTime ().Equals (Convert.ToDateTime (obj));
 				}
 			}
 			return false;
@@ -2246,14 +2246,14 @@ namespace Eruru.Json {
 					case JsonValueType.Decimal:
 						return ToDecimal ().CompareTo (Convert.ToDecimal (obj));
 					case JsonValueType.Bool:
-						return ToBool ().CompareTo ((bool)obj);
+						return ToBool ().CompareTo (Convert.ToBoolean (obj));
 					case JsonValueType.String:
 						if (obj is char character) {
 							return ToChar ().CompareTo (character);
 						}
-						return ToString ().CompareTo ((string)obj);
+						return ToString ().CompareTo (Convert.ToString (obj));
 					case JsonValueType.DateTime:
-						return ToDateTime ().CompareTo ((DateTime)obj);
+						return ToDateTime ().CompareTo (Convert.ToDateTime (obj));
 				}
 			}
 			return 0;

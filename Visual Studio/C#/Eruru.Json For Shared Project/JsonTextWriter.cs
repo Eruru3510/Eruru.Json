@@ -87,13 +87,13 @@ namespace Eruru.Json {
 					}
 					break;
 				case JsonValueType.Bool:
-					TextWriter.Write ((bool)value ? JsonKeyword.True : JsonKeyword.False);
+					TextWriter.Write (Convert.ToBoolean (value) ? JsonKeyword.True : JsonKeyword.False);
 					break;
 				case JsonValueType.String:
-					WriteString (JsonApi.CancelUnescape ((string)value));
+					WriteString (JsonApi.CancelUnescape (Convert.ToString (value)));
 					break;
 				case JsonValueType.DateTime:
-					DateTime dateTime = (DateTime)value;
+					DateTime dateTime = Convert.ToDateTime (value);
 					WriteString (Config.UTCTime ? dateTime.ToUniversalTime ().ToString ("yyyy-MM-ddTHH:mm:ssZ") : dateTime.ToString ());
 					break;
 				default:

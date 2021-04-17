@@ -1,14 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Reflection;
 using Eruru.Json;
 
 namespace ConsoleApp1 {
+
+	class Data {
+
+		public BindingFlags BindingFlags;
+
+	}
 
 	class Program {
 
 		static void Main (string[] args) {
 			Console.Title = nameof (ConsoleApp1);
-			KeyValuePair<string, int> keyValuePair = JsonConvert.Deserialize<KeyValuePair<string, int>> ("{'A':1}");
+			Console.WriteLine (JsonConvert.Serialize (new Data (), false));
 			Console.ReadLine ();
 		}
 
