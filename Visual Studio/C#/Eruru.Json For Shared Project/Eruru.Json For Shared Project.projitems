@@ -9,6 +9,9 @@
     <Import_RootNamespace>Eruru.Json</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Attributes\ExtensionAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\JsonNamingType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethods.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IJsonArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IJsonBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IJsonConverter.cs" />
@@ -50,7 +53,6 @@
     <Folder Include="$(MSBuildThisFileDirectory)JsonBuilders\" />
     <Folder Include="$(MSBuildThisFileDirectory)JsonReaders\" />
     <Folder Include="$(MSBuildThisFileDirectory)Exceptions\" />
-    <Folder Include="$(MSBuildThisFileDirectory)Enums\" />
     <Folder Include="$(MSBuildThisFileDirectory)Attributes\" />
   </ItemGroup>
 </Project>

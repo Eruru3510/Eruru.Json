@@ -11,58 +11,55 @@ namespace Eruru.Json {
 
 		public JsonValueBuilder (IJsonReader reader, JsonConfig config = null) {
 			Reader = reader ?? throw new ArgumentNullException (nameof (reader));
-			Config = config;
+			Config = config ?? JsonConfig.Default;
 		}
 
 		#region IJsonBuilder<JsonValue, JsonArray, JsonObject>
 
 		public JsonValue BuildValue (JsonValue value = null) {
-			JsonValue currentValue = null;
+			JsonValue returnValue = null;
 			Reader.ReadValue (
-				(instanceValue, valueType) => {
+				(instance, valueType) => {
 					if (value is null) {
-						currentValue = new JsonValue (instanceValue, valueType);
+						returnValue = new JsonValue (instance, valueType);
 						return;
 					}
 					value._Type = valueType;
-					value._Value = instanceValue;
-					currentValue = value;
+					value._Value = instance;
+					returnValue = value;
 				},
-				() => currentValue = BuildArray (value),
-				() => currentValue = BuildObject (value)
+				() => returnValue = BuildArray (value),
+				() => returnValue = BuildObject (value)
 			);
-			return currentValue;
+			return returnValue;
 		}
 
 		public JsonArray BuildArray (JsonArray array = null) {
-			if (array is null) {
-				Stacks.Push (new JsonArray ());
-			} else {
-				Stacks.Push (array);
-			}
-			int count = Stacks.Peek ().Count;
+			Stacks.Push (array ?? new JsonArray ());
+			int oldCount = Stacks.Peek ().Count;
+			int newCount = 0;
 			Reader.ReadArray (i => {
-				JsonValue value = null;
-				if (i < count) {
-					value = Stacks.Peek ().Get (i);
+				newCount = i + 1;
+				if (i < oldCount) {
+					Stacks.Peek ()[i] = BuildValue (Stacks.Peek ()[i]);
+					return;
 				}
-				Stacks.Peek ().Add (BuildValue (value));
+				Stacks.Peek ().Add (BuildValue ());
 			});
-			Stacks.Peek ().RemoveRange (0, count);
+			if (Stacks.Peek ().Count > newCount) {
+				Stacks.Peek ().RemoveRange (0, oldCount);
+			}
 			return Stacks.Pop ();
 		}
 
 		public JsonObject BuildObject (JsonObject jsonObject = null) {
-			JsonObject currentObject = jsonObject;
-			if (currentObject is null) {
-				currentObject = new JsonObject ();
-			}
-			string keyName = null;
+			JsonObject returnValue = jsonObject ?? new JsonObject ();
+			string key = null;
 			Reader.ReadObject (name => {
-				keyName = name;
+				key = name;
 				return true;
-			}, () => currentObject.Add (keyName, BuildValue (currentObject.Get (keyName))));//todo 待测试复用是否正常
-			return currentObject;
+			}, () => returnValue.Add (JsonApi.Naming (key, Config.NamingType), BuildValue (returnValue.Get (key))));//todo 待测试复用是否正常
+			return returnValue;
 		}
 
 		#endregion

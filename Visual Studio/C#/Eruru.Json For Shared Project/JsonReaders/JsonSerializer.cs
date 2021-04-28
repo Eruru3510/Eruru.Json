@@ -85,6 +85,8 @@ namespace Eruru.Json {
 			}
 			Initialize (true);
 			switch (Stacks.Peek ().ArrayType) {
+				default:
+					throw new JsonNotSupportException (Stacks.Peek ().ArrayType);
 				case JsonArrayType.Array: {
 					if (ForEachArray is null) {
 						Array array = (Array)Stacks.Peek ().Instance;
@@ -141,8 +143,6 @@ namespace Eruru.Json {
 					}
 					break;
 				}
-				default:
-					throw new JsonNotSupportException (Stacks.Peek ().ArrayType);
 			}
 		}
 
@@ -155,6 +155,8 @@ namespace Eruru.Json {
 			}
 			Initialize (false);
 			switch (Stacks.Peek ().ObjectType) {
+				default:
+					throw new JsonNotSupportException (Stacks.Peek ().ObjectType);
 				case JsonObjectType.Class:
 					JsonApi.ForEachSerializableMembers (Stacks.Peek ().Type, (memberInfo, fieldInfo, propertyInfo, field) => {
 						bool isReaded = false;
@@ -166,14 +168,14 @@ namespace Eruru.Json {
 							}
 							isReaded = true;
 							switch (memberInfo.MemberType) {
+								default:
+									throw new JsonNotSupportException (memberInfo.MemberType);
 								case MemberTypes.Field:
 									fieldType = fieldInfo.FieldType;
 									return instance = fieldInfo.GetValue (Stacks.Peek ().Instance);
 								case MemberTypes.Property:
 									fieldType = propertyInfo.PropertyType;
 									return instance = propertyInfo.GetValue (Stacks.Peek ().Instance, null);
-								default:
-									throw new JsonNotSupportException (memberInfo.MemberType);
 							}
 						}
 						object ConverterWrite (object value) {
@@ -225,7 +227,7 @@ namespace Eruru.Json {
 				case JsonObjectType.GenericSortedList: {
 					IDictionary dictionary = (IDictionary)Stacks.Peek ().Instance;
 					foreach (DictionaryEntry entry in dictionary) {
-						if (key (entry.Key.ToString ())) {
+						if (key (Convert.ToString (entry.Key))) {
 							Stacks.Push (new JsonSerializerStack (entry.Value));
 							readValue ();
 							Stacks.Pop ();
@@ -234,15 +236,13 @@ namespace Eruru.Json {
 					break;
 				}
 				case JsonObjectType.GenericKeyValuePair: {
-					if (key (Stacks.Peek ().Type.GetProperty ("Key").GetValue (Stacks.Peek ().Instance, null).ToString ())) {
+					if (key (Convert.ToString (Stacks.Peek ().Type.GetProperty ("Key").GetValue (Stacks.Peek ().Instance, null)))) {
 						Stacks.Push (new JsonSerializerStack (Stacks.Peek ().Type.GetProperty ("Value").GetValue (Stacks.Peek ().Instance, null)));
 						readValue ();
 						Stacks.Pop ();
 					}
 					break;
 				}
-				default:
-					throw new JsonNotSupportException (Stacks.Peek ().ObjectType);
 			}
 		}
 

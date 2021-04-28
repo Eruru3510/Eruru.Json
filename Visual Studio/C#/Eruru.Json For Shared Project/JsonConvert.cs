@@ -71,21 +71,21 @@ namespace Eruru.Json {
 			if (value is null) {
 				throw new ArgumentNullException (nameof (value));
 			}
-			return new JsonDeserializer (new JsonValueReader (value), config).BuildValue<T> ();
+			return new JsonDeserializer (new JsonValueReader (value, config), config).BuildValue<T> ();
 		}
 
 		public static T Deserialize<T> (JsonArray array, JsonConfig config = null) {
 			if (array is null) {
 				throw new ArgumentNullException (nameof (array));
 			}
-			return new JsonDeserializer (new JsonValueReader (array), config).BuildArray<T> ();
+			return new JsonDeserializer (new JsonValueReader (array, config), config).BuildArray<T> ();
 		}
 
 		public static T Deserialize<T> (JsonObject jsonObject, JsonConfig config = null) {
 			if (jsonObject is null) {
 				throw new ArgumentNullException (nameof (jsonObject));
 			}
-			return new JsonDeserializer (new JsonValueReader (jsonObject), config).BuildObject<T> ();
+			return new JsonDeserializer (new JsonValueReader (jsonObject, config), config).BuildObject<T> ();
 		}
 
 		public static T Deserialize<T> (string text, JsonConfig config = null) {
@@ -119,21 +119,21 @@ namespace Eruru.Json {
 			if (value is null) {
 				throw new ArgumentNullException (nameof (value));
 			}
-			return new JsonDeserializer (new JsonValueReader (value), config).BuildValue<T> (instance);
+			return new JsonDeserializer (new JsonValueReader (value, config), config).BuildValue<T> (instance);
 		}
 
 		public static T Deserialize<T> (JsonArray array, T instance, JsonConfig config = null) {
 			if (array is null) {
 				throw new ArgumentNullException (nameof (array));
 			}
-			return new JsonDeserializer (new JsonValueReader (array), config).BuildArray<T> (instance);
+			return new JsonDeserializer (new JsonValueReader (array, config), config).BuildArray<T> (instance);
 		}
 
 		public static T Deserialize<T> (JsonObject jsonObject, T instance, JsonConfig config = null) {
 			if (jsonObject is null) {
 				throw new ArgumentNullException (nameof (jsonObject));
 			}
-			return new JsonDeserializer (new JsonValueReader (jsonObject), config).BuildObject<T> (instance);
+			return new JsonDeserializer (new JsonValueReader (jsonObject, config), config).BuildObject<T> (instance);
 		}
 
 		public static T Deserialize<T> (string text, T instance, JsonConfig config = null) {

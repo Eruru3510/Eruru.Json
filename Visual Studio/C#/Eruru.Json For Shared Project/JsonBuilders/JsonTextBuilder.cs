@@ -5,6 +5,7 @@ namespace Eruru.Json {
 
 	public class JsonTextBuilder : IDisposable, IJsonBuilder {
 
+		readonly JsonConfig Config;
 		readonly JsonTextWriter TextWriter;
 		readonly IJsonReader Reader;
 
@@ -14,17 +15,20 @@ namespace Eruru.Json {
 			}
 			Reader = reader ?? throw new ArgumentNullException (nameof (reader));
 			TextWriter = new JsonTextWriter (textWriter, config);
+			Config = config ?? JsonConfig.Default;
 		}
 		public JsonTextBuilder (IJsonReader reader, TextWriter textWriter, bool compress, JsonConfig config = null) {
 			if (textWriter is null) {
 				throw new ArgumentNullException (nameof (textWriter));
 			}
 			Reader = reader ?? throw new ArgumentNullException (nameof (reader));
+			Config = config ?? JsonConfig.Default;
 			TextWriter = new JsonTextWriter (textWriter, compress, config);
 		}
-		public JsonTextBuilder (IJsonReader reader, JsonTextWriter textWriter) {
+		public JsonTextBuilder (IJsonReader reader, JsonTextWriter textWriter, JsonConfig config = null) {
 			Reader = reader ?? throw new ArgumentNullException (nameof (reader));
 			TextWriter = textWriter ?? throw new ArgumentNullException (nameof (textWriter));
+			Config = config ?? JsonConfig.Default;
 		}
 
 		public override string ToString () {
@@ -59,7 +63,7 @@ namespace Eruru.Json {
 			TextWriter.BeginObject ();
 			Reader.ReadObject (
 				name => {
-					TextWriter.Write (name, JsonValueType.String);
+					TextWriter.Write (JsonApi.Naming (name, Config.NamingType), JsonValueType.String);
 					return true;
 				},
 				() => BuildValue ()

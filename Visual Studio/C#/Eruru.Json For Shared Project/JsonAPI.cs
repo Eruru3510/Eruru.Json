@@ -14,7 +14,8 @@ namespace Eruru.Json {
 
 	static class JsonApi {
 
-		static readonly BindingFlags BindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+		public static readonly BindingFlags BindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+
 		static readonly Dictionary<char, char> Unescapes = new Dictionary<char, char> {
 			{ '"', '"' },
 			{ '\\', '\\' },
@@ -144,31 +145,11 @@ namespace Eruru.Json {
 			return false;
 		}
 
-		public static void SetExceptionMessage (object instance, string message) {
-			if (instance is null) {
-				throw new ArgumentNullException (nameof (instance));
-			}
-			if (message is null) {
-				throw new ArgumentNullException (nameof (message));
-			}
-			typeof (Exception).GetField ("_message", BindingFlags).SetValue (instance, message);
-		}
-
 		public static MemberInfo[] GetMembers (Type type) {
 			if (type is null) {
 				throw new ArgumentNullException (nameof (type));
 			}
 			return type.GetMembers (BindingFlags);
-		}
-
-		public static FieldInfo GetField (Type type, string name) {
-			if (type is null) {
-				throw new ArgumentNullException (nameof (type));
-			}
-			if (name is null) {
-				throw new ArgumentNullException (nameof (name));
-			}
-			return type.GetField (name, BindingFlags);
 		}
 
 		public static void ForEachSerializableMembers (Type type, JsonAction<MemberInfo, FieldInfo, PropertyInfo, JsonField> action) {
@@ -256,7 +237,7 @@ namespace Eruru.Json {
 			return type.IsArray ? type.GetElementType () : type;
 		}
 
-		public static object ChangeType (object value, Type type, JsonConfig config = null) {
+		public static object ChangeType (object value, Type type = null, JsonConfig config = null) {
 			if (type is null) {
 				return value;
 			}
@@ -269,9 +250,6 @@ namespace Eruru.Json {
 						return Enum.Parse (type, value?.ToString (), config.IgnoreCase);
 					}
 					return Enum.ToObject (type, Convert.ChangeType (value, TypeCode.Int32));
-				}
-				if (value?.GetType ().GetInterface (nameof (IConvertible)) == null) {
-					return value;
 				}
 				return Convert.ChangeType (value, type);
 			} catch {
@@ -335,6 +313,19 @@ namespace Eruru.Json {
 				}
 			}
 			return true;
+		}
+
+		public static string Naming (string name, JsonNamingType type) {
+			switch (type) {
+				case JsonNamingType.Default:
+					return name;
+				case JsonNamingType.Lowercase:
+					return name?.ToLowerInvariant ();
+				case JsonNamingType.Uppercase:
+					return name?.ToUpperInvariant ();
+				default:
+					throw new NotImplementedException ();
+			}
 		}
 
 	}

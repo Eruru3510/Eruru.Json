@@ -28,14 +28,14 @@ namespace Eruru.Json {
 			return (T)BuildObject (typeof (T), instance);
 		}
 
-		public object BuildValue (Type type, object instance = null) {
-			object instanceValue = null;
+		public object BuildValue (Type type = null, object instance = null) {
+			object returnValue = null;
 			Reader.ReadValue (
-				(value, _) => instanceValue = JsonApi.ChangeType (value, type, Config),
-				() => instanceValue = BuildArray (type, instance),
-				() => instanceValue = BuildObject (type, instance)
+				(value, _) => returnValue = JsonApi.ChangeType (value, type, Config),
+				() => returnValue = BuildArray (type, instance),
+				() => returnValue = BuildObject (type, instance)
 			);
-			return instanceValue;
+			return returnValue;
 		}
 
 		public object BuildArray (Type type, object instance = null) {
@@ -43,24 +43,25 @@ namespace Eruru.Json {
 				throw new ArgumentNullException (nameof (type));
 			}
 			if (!JsonApi.TryGetArrayType (type, out JsonArrayType arrayType)) {
-				throw new NotImplementedException (type.ToString ());
+				throw new JsonNotSupportException (type);
 			}
 			switch (arrayType) {
 				default:
-					throw new NotImplementedException (arrayType.ToString ());
+					throw new JsonNotSupportException (arrayType);
 				case JsonArrayType.Array: {
-					JsonArray jsonArray = new JsonValueBuilder (Reader).BuildArray ();
+					JsonArray jsonArray = new JsonValueBuilder (Reader, Config).BuildArray ();
 					List<int> bounds = new List<int> ();
 					MeasureArray (jsonArray, ref bounds);
-					if (bounds.Count < type.GetArrayRank ()) {
+					if (bounds.Count != type.GetArrayRank ()) {
 						throw new JsonException ("数组维数不匹配");
 					}
 					Type elementType = type.GetElementType ();
-					Array array = instance as Array;
+					Array array = null;
 					bool create = false;
 					if (instance?.GetType () != type) {
 						create = true;
 					} else {
+						array = (Array)instance;
 						for (int i = 0; i < array.Rank; i++) {
 							if (array.GetLength (i) != bounds[i]) {
 								create = true;
@@ -69,7 +70,7 @@ namespace Eruru.Json {
 						}
 					}
 					if (create) {
-						if (type.GetArrayRank () == 1) {
+						if (bounds.Count == 1) {
 							array = Array.CreateInstance (elementType, bounds[0]);
 						} else {
 							array = Array.CreateInstance (elementType, bounds.ToArray ());
@@ -77,24 +78,24 @@ namespace Eruru.Json {
 					}
 					if (array.Rank == 1) {
 						for (int i = 0; i < jsonArray.Count; i++) {
-							JsonDeserializer deserializer = new JsonDeserializer (new JsonValueReader (jsonArray[i]), Config);
+							JsonDeserializer deserializer = new JsonDeserializer (new JsonValueReader (jsonArray[i], Config), Config);
 							array.SetValue (deserializer.BuildValue (elementType, array.GetValue (i)), i);
 						}
 						return array;
 					}
 					int[] indices = new int[bounds.Count];
 					int dimension = 0;
-					void ForEachArray (JsonArray current) {
+					void ForEachArray (JsonArray currentArray) {
 						int length = bounds[dimension];
 						for (int i = 0; i < length; i++) {
 							indices[dimension] = i;
 							if (dimension == indices.Length - 1) {
-								JsonDeserializer deserializer = new JsonDeserializer (new JsonValueReader (current[i]), Config);
+								JsonDeserializer deserializer = new JsonDeserializer (new JsonValueReader (currentArray[i], Config), Config);
 								array.SetValue (deserializer.BuildValue (elementType, array.GetValue (indices)), indices);
 								continue;
 							}
 							dimension++;
-							ForEachArray (current[i]);
+							ForEachArray (currentArray[i]);
 						}
 						dimension--;
 					}
@@ -109,7 +110,7 @@ namespace Eruru.Json {
 						if (type.IsInterface) {
 							switch (arrayType) {
 								default:
-									throw new NotImplementedException (arrayType.ToString ());
+									throw new JsonNotSupportException (arrayType);
 								case JsonArrayType.GenericIList:
 									instance = JsonApi.CreateInstance (typeof (List<>).MakeGenericType (elementType));
 									break;
@@ -127,12 +128,12 @@ namespace Eruru.Json {
 							list[i] = BuildValue (elementType, list[i]);
 							return;
 						}
-						list.Add (BuildValue (elementType, null));
+						list.Add (BuildValue (elementType));
 					});
 					while (list.Count > newCount) {
 						list.RemoveAt (list.Count - 1);
 					}
-					return instance;
+					return list;
 				}
 				case JsonArrayType.DataTable: {
 					if (instance?.GetType () != type) {
@@ -160,7 +161,7 @@ namespace Eruru.Json {
 							}
 							return true;
 						}, () => {
-							object value = BuildValue (null);
+							object value = BuildValue ();
 							if (hasRow) {
 								dataTable.Rows[i].ItemArray[columnIndex] = value;
 								return;
@@ -176,7 +177,7 @@ namespace Eruru.Json {
 							dataTable.Rows.Add (i == 0 ? arrayList.ToArray () : values);
 						}
 					});
-					return instance;
+					return dataTable;
 				}
 			}
 		}
@@ -186,12 +187,14 @@ namespace Eruru.Json {
 				throw new ArgumentNullException (nameof (type));
 			}
 			if (!JsonApi.TryGetObjectType (type, out JsonObjectType objectType)) {
-				throw new NotImplementedException (type.ToString ());
+				throw new JsonNotSupportException (type);
 			}
 			if (instance?.GetType () != type) {
 				instance = JsonApi.CreateInstance (type);
 			}
 			switch (objectType) {
+				default:
+					throw new JsonNotSupportException (objectType);
 				case JsonObjectType.Class: {
 					MemberInfo memberInfo = null;
 					FieldInfo fieldInfo = null;
@@ -210,23 +213,28 @@ namespace Eruru.Json {
 					}, () => {
 						object value;
 						switch (memberInfo.MemberType) {
+							default:
+								throw new JsonNotSupportException (memberInfo.MemberType);
 							case MemberTypes.Field:
 								value = ConverterRead (fieldInfo.FieldType, fieldInfo.GetValue (instance), field);
 								break;
 							case MemberTypes.Property:
 								value = ConverterRead (propertyInfo.PropertyType, propertyInfo.GetValue (instance, null), field);
 								break;
-							default:
-								throw new JsonNotSupportException (memberInfo.MemberType);
 						}
 						if (!JsonApi.CanSerializeValue (value, Config)) {
 							return;
 						}
-						if (memberInfo.MemberType == MemberTypes.Property) {
-							propertyInfo.SetValue (instance, value, null);
-							return;
+						switch (memberInfo.MemberType) {
+							default:
+								throw new JsonNotSupportException (memberInfo.MemberType);
+							case MemberTypes.Field:
+								fieldInfo.SetValue (instance, value);
+								break;
+							case MemberTypes.Property:
+								propertyInfo.SetValue (instance, value, null);
+								break;
 						}
-						fieldInfo.SetValue (instance, value);
 					});
 					return instance;
 				}
@@ -243,7 +251,7 @@ namespace Eruru.Json {
 						if (!hasTable) {
 							dataSet.Tables.Add (dataTable);
 						}
-						dataTable.TableName = tableName;
+						dataTable.TableName = JsonApi.Naming (tableName, Config.NamingType);
 					});
 					return instance;
 				}
@@ -256,7 +264,7 @@ namespace Eruru.Json {
 					dictionary.Clear ();
 					object key = null;
 					Reader.ReadObject (name => {
-						key = JsonApi.ChangeType (name, keyType);
+						key = JsonApi.ChangeType (JsonApi.Naming (name, Config.NamingType), keyType, Config);
 						return true;
 					}, () => {
 						dictionary[key] = BuildValue (valueType);
@@ -267,16 +275,14 @@ namespace Eruru.Json {
 					Type keyType = type.GetGenericArguments ()[0];
 					Type valueType = type.GetGenericArguments ()[1];
 					Reader.ReadObject (name => {
-						JsonApi.GetField (type, "key").SetValue (instance, JsonApi.ChangeType (name, keyType));
+						type.GetRuntimeField ("key").SetValue (instance, JsonApi.ChangeType (JsonApi.Naming (name, Config.NamingType), keyType, Config));
 						return true;
 					}, () => {
-						FieldInfo fieldInfo = JsonApi.GetField (type, "value");
+						FieldInfo fieldInfo = type.GetRuntimeField ("value");
 						fieldInfo.SetValue (instance, BuildValue (valueType, fieldInfo.GetValue (instance)));
 					});
 					return instance;
 				}
-				default:
-					throw new JsonNotSupportException (objectType);
 			}
 		}
 

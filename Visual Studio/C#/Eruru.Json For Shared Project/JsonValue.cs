@@ -2117,7 +2117,7 @@ namespace Eruru.Json {
 		#region IJsonSerializable
 
 		public string Serialize (JsonConfig config = null) {
-			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), new StringWriter (), config)) {
+			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this, config), new StringWriter (), config)) {
 				builder.BuildValue ();
 				return builder.ToString ();
 			}
@@ -2132,12 +2132,12 @@ namespace Eruru.Json {
 			if (textWriter is null) {
 				throw new ArgumentNullException (nameof (textWriter));
 			}
-			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), textWriter, config)) {
+			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this, config), textWriter, config)) {
 				builder.BuildValue ();
 			}
 		}
 		public string Serialize (bool compress, JsonConfig config = null) {
-			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), new StringWriter (), compress, config)) {
+			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this, config), new StringWriter (), compress, config)) {
 				builder.BuildValue ();
 				return builder.ToString ();
 			}
@@ -2152,7 +2152,7 @@ namespace Eruru.Json {
 			if (textWriter is null) {
 				throw new ArgumentNullException (nameof (textWriter));
 			}
-			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this), textWriter, compress, config)) {
+			using (JsonTextBuilder builder = new JsonTextBuilder (new JsonValueReader (this, config), textWriter, compress, config)) {
 				builder.BuildValue ();
 			}
 		}

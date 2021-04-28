@@ -22,7 +22,7 @@ namespace Eruru.Json {
 				$"值：{textTokenizer.Current.Value}"
 			);
 			stringBuilder.AppendLine (new string (textTokenizer.Buffer.ToArray ()));
-			JsonApi.SetExceptionMessage (this, stringBuilder.ToString ());
+			this.SetMessage (stringBuilder.ToString ());
 		}
 
 	}

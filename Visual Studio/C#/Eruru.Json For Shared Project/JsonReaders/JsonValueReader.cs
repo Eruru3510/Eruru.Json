@@ -5,12 +5,14 @@ namespace Eruru.Json {
 
 	public class JsonValueReader : IJsonReader {
 
+		readonly JsonConfig Config;
 		readonly Stack<JsonValue> Values = new Stack<JsonValue> ();
 
-		public JsonValueReader (JsonValue value) {
+		public JsonValueReader (JsonValue value, JsonConfig config = null) {
 			if (value is null) {
 				throw new ArgumentNullException (nameof (value));
 			}
+			Config = config ?? JsonConfig.Default;
 			Values.Push (value);
 		}
 

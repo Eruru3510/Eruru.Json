@@ -28,22 +28,22 @@ namespace Eruru.Json {
 
 		public void Write (object value) {
 			if (value is JsonValue jsonValue) {
-				new JsonTextBuilder (new JsonValueReader (jsonValue), this).BuildValue ();
+				new JsonTextBuilder (new JsonValueReader (jsonValue, Config), this, Config).BuildValue ();
 				return;
 			}
 			if (value is JsonArray array) {
-				new JsonTextBuilder (new JsonValueReader (array), this).BuildArray ();
+				new JsonTextBuilder (new JsonValueReader (array, Config), this, Config).BuildArray ();
 				return;
 			}
 			if (value is JsonObject jsonObject) {
-				new JsonTextBuilder (new JsonValueReader (jsonObject), this).BuildObject ();
+				new JsonTextBuilder (new JsonValueReader (jsonObject, Config), this, Config).BuildObject ();
 				return;
 			}
 			if (JsonApi.TryGetValueType (value, out JsonValueType valueType, Config)) {
 				Write (value, valueType);
 				return;
 			}
-			new JsonTextBuilder (new JsonSerializer (value, Config), this).BuildValue ();
+			new JsonTextBuilder (new JsonSerializer (value, Config), this, Config).BuildValue ();
 		}
 
 		public void BeginArray () {
